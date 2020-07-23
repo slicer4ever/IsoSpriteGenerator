@@ -1,0 +1,29 @@
+
+<Component Name="LblBtn" LblStyle="MenuFnt" BtnStyle="MenuButton">
+	<Label Name="Label" Value="{Value}" Style="{LblStyle}" Flag="PAMC|LAMC|DrawAfter">
+		<Button Name="Button" Style="{BtnStyle}" Flag="PAMC|LAMC" />
+	</Label>
+</Component>
+
+<Component Name="BtnLbl" LblStyle="MenuFnt" BtnStyle="MenuButton">
+	<Button Name="Button" Style="{BtnStyle}" Flag="PAMC|LAMC" Size="x: 100% y: 100%">
+		<Label Name="Label" Value="{Value}" Style="{LblStyle}" Flag="PAMC|LAMC" />
+	</Button>
+</Component>
+
+<Component Name="Toggle" LblStyle="MenuFnt" ToggleMaterial="Toggled" BtnStyle="MenuButton" >
+	<Rect Name="LockedUI" Material="ToggleLocked" Flag="PAMC|LAMC|Invisible" Size="x: 100%+1px y: 100%+1px" />
+	<Rect Name="ToggleUI" Material="Toggled" Flag="PAMC|LAMC|Invisible" Size="x: 100% y: 100%+1px" Position="y: 1px" />
+	<Button Name="Button" Style="{BtnStyle}" Flag="PAMC|LAMC" Size="x: 100% y: 100%">
+		<Label Name="Label" Value="{Value}" Style="{LblStyle}" Flag="PAMC|LAMC" />
+	</Button>
+</Component>
+
+<Component Name="ListDialog">
+	<Rect Size="x: 100% y: 100%" Material="MenuBackground" Flag="PAMC|LAMC">
+		<ListBox Name="List" Style="ListBoxStyle" Flag="PABC|LABC" Size="x: 92% y: 85%" Position="y: 5px" >
+			<TextInput Name="SearchTI" Flag="PATC|LABC" Style="TISmallStyle" Default="Search" Position="y: 5px" />
+			<ScrollBar Name="ListSB" Style="ScrollStyle" Flag="PAMR|LAML|VerticalBar" Size="x: 3% y: 100%" />
+		</ListBox>
+	</Rect>
+</Component>

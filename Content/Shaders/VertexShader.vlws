@@ -1,0 +1,61 @@
+#module Vertex OpenGL4_5
+#version 440
+#define USEGLOBALDATA
+#define USEPASSDATA
+#define USEMODELDATA
+#define USEGVERTEXDATA
+#define USEGPIXELDATA
+#define USEGPIXELOUTPUT
+#include "SharedFunctions.lws"
+#module Vertex DirectX11_1
+Pixel main(Vertex In){
+	int i = 0;
+	Pixel O;
+	float4x4 Transform = GetTransformMatrix(In);
+	O.WPosition = mul(Transform, In.Position);
+	[unroll]
+	for(i=0;i<MaxPasses;i++) O.TPositions[i] = mul(ProjViewMatrixs[i], O.WPosition);
+	O.Position = mul(ProjViewMatrixs[PassIndex], O.WPosition);
+	[unroll]
+	for(i=0;i<MaxTextures;i++){
+		O.TexCoords[i] = Material.SubTextures[i].xy + Material.SubTextures[i].zw*In.TexCoord.xy;
+	}
+	float3 Tangent = normalize(mul(Transform, float4(In.Tangent.xyz, 0.0f)).xyz);
+	float3 Normal = normalize(mul(Transform, In.Normal).xyz);
+	Tangent = normalize(Tangent - dot(Tangent, Normal)*Normal);
+	float3 BiTangent = cross(Normal, Tangent)*In.Tangent.w;
+	O.TBN = (float3x3(Tangent, BiTangent, Normal));
+	O.Transparency = 1.0f-In.TexCoord.z;
+	return O;
+}
+
+
+#module Vertex OpenGL4_5
+out gl_PerVertex {
+	vec4 gl_Position;
+	float gl_PointSize;
+	float gl_ClipDistance[];
+};
+
+void main(){
+	int i = 0;
+	mat4 Transform = GetTransformMatrix();
+	p.WPosition = Transform*vPosition;
+	for(i=0;i<MaxPasses;i++) p.TPositions[i] = ProjViewMatrixs[i]*p.WPosition;
+	gl_Position = ProjViewMatrixs[PassIndex]*p.WPosition;
+#ifdef POINT
+	gl_Position = Project(gl_Position);
+	gl_ClipDistance[0] = gl_Position.w;
+	gl_Position.w = 1.0f;
+#endif
+	for(i=0;i<MaxTextures;i++){
+		p.TexCoords[i] = Material.SubTextures[i].xy + Material.SubTextures[i].zw*vTexCoord.xy;
+	}
+	vec3 Tangent = normalize((Transform*vec4(vTangent.xyz, 0.0f)).xyz);
+	vec3 Normal = normalize((Transform*vNormal).xyz);
+	Tangent = normalize(Tangent - dot(Tangent, Normal)*Normal);
+	vec3 BiTangent = cross(Normal, Tangent)*vTangent.w;
+	p.TBN = mat3(Tangent, BiTangent, Normal);
+	p.Transparency = 1.0f-vTexCoord.z;
+	return;
+}

@@ -1,0 +1,123 @@
+#module Pixel DirectX11_1
+
+struct PMaterial{
+	float4 Diffuse;
+	float4 Reflect0;
+	float4 Reflect90;
+	float pRoughness;
+	float aRoughness;
+};
+
+Texture2D AlbedoTex;
+Texture2D MetallicRoughnessTex;
+SamplerState AlbedoSmp;
+SamplerState MetallicRoughnessSmp;
+
+float4 RenderDebug(Pixel In, uint RType, float4 Color, float Alpha){
+	float4 Albedo = Material.MaterialColorA*SampleIf(AlbedoTex, AlbedoSmp, PBRAlbedoTexID, In, true);
+	float4 MRSmp = SampleIf(MetallicRoughnessTex, MetallicRoughnessSmp, PBRMetallicRoughnessTexID, In, false);
+	if(RType==RenderAlbedo) return ToneMap(Albedo, Alpha);
+	if(RType==RenderMetallic) return MRSmp*float4(1.0f, Material.MaterialColorB.y, Material.MaterialColorB.x, 1.0f);
+	return Color;
+}	
+
+PMaterial PrepareMaterial(Pixel In, inout oPixel P, float3 Normal, float3 View, inout float Alpha){
+	const float4 F0 = float4(0.04f, 0.04f, 0.04f, 0.04f);
+	const float4 black = float4(0.0f, 0.0f, 0.0f, 0.0f);
+	
+	float4 Albedo = Material.MaterialColorA * SampleIf(AlbedoTex, AlbedoSmp, PBRAlbedoTexID, In, true);
+	float4 MRSmp = SampleIf(MetallicRoughnessTex, MetallicRoughnessSmp, PBRMetallicRoughnessTexID, In, false);
+	float Metallic = Material.MaterialColorB.x*MRSmp.b;
+	float Roughness = Material.MaterialColorB.y*MRSmp.g;
+	
+	PMaterial R;
+	float A = Roughness*Roughness;
+	R.pRoughness = Roughness;
+	R.aRoughness = A*A;
+	R.Diffuse = lerp(Albedo*(1.0f-F0), black, Metallic);
+	R.Reflect0 = lerp(F0, Albedo, Metallic);
+	float Reflection = saturate(max(max(R.Reflect0.r, R.Reflect0.g), R.Reflect0.b)*50.0f);
+	R.Reflect90 = float4(Reflection, Reflection, Reflection, Reflection);
+	Alpha = Alpha*Albedo.a;
+	return R;
+}
+
+float4 ProcessIBL(PMaterial Mat, float3 Normal, float3 View, float Att){
+	float4 Spec = IBLRadianceGGX(Mat.pRoughness, Mat.Reflect0, Normal, View);
+	float4 Diff = IBLRadianceLambertian(Mat.Diffuse, Normal);
+	return (Spec+Diff)*Att;
+}
+
+float4 ProcessLight(Light L, LightResults LR, PMaterial Mat){
+	const float pi = 3.1415926535897932384626433832795f;
+	float A2 = Mat.aRoughness;
+	float4 F = Mat.Reflect0 + (Mat.Reflect90-Mat.Reflect0)*pow(saturate(1.0f-LR.VdotH), 5.0f);
+	
+    float GGXV = LR.NdotL*sqrt(LR.NdotV * LR.NdotV * (1.0 - A2) +A2);
+    float GGXL = LR.NdotV*sqrt(LR.NdotL * LR.NdotL * (1.0 - A2) +A2);
+	float G = max(GGXV+GGXL, 0.0f);
+	if(G>0.0f) G = 0.5f/G;
+	float K = (LR.NdotH*A2-LR.NdotH)*LR.NdotH+1.0f;
+	float D = A2/(pi*K*K);
+	float4 fSpecular = F*G*D;
+	float4 fDiffuse = (1.0f-F)*(Mat.Diffuse/pi);
+	return float4(L.m_Color.xyz, 1.0f)*L.m_Color.w*LR.Att*LR.NdotL*(fSpecular+fDiffuse);
+}
+
+#module Pixel OpenGL4_5
+struct PMaterial{
+	vec4 Diffuse;
+	vec4 Reflect0;
+	vec4 Reflect90;
+	float pRoughness;
+	float aRoughness;
+};
+
+uniform sampler2D AlbedoTex;
+uniform sampler2D MetallicRoughnessTex;
+
+PMaterial PrepareMaterial(inout float Alpha){
+	const vec4 F0 = vec4(0.04f, 0.04f, 0.04f, 0.04f);
+	const vec4 black = vec4(0.0f, 0.0f, 0.0f, 0.0f);
+	
+	vec4 Albedo = Material.MaterialColorA * SampleIf(AlbedoTex, PBRAlbedoTexID, true);
+	vec4 MRSmp = SampleIf(MetallicRoughnessTex, PBRMetallicRoughnessTexID, false);
+	float Metallic = Material.MaterialColorB.x*MRSmp.b;
+	float Roughness = Material.MaterialColorB.y*MRSmp.g;
+	
+	PMaterial R;
+	float A = Roughness*Roughness;
+	R.pRoughness = Roughness;
+	R.aRoughness = A*A;
+	R.Diffuse = mix(Albedo*(1.0f-F0), black, Metallic);
+	R.Reflect0 = mix(F0, Albedo, Metallic);
+	float Reflection = clamp(max(max(R.Reflect0.r, R.Reflect0.g), R.Reflect0.b)*50.0f, 0.0f, 1.0f);
+	R.Reflect90 = vec4(Reflection, Reflection, Reflection, Reflection);
+	Alpha = Alpha*Albedo.a;
+	
+	return R;
+}
+
+
+vec4 ProcessIBL(PMaterial Mat, vec3 Normal, vec3 View, float Att){
+	vec4 Spec = IBLRadianceGGX(Mat.pRoughness, Mat.Reflect0, Normal, View);
+	vec4 Diff = IBLRadianceLambertian(Mat.Diffuse, Normal);
+	return (Spec+Diff)*Att;
+	
+}
+
+vec4 ProcessLight(Light L, LightResults LR, PMaterial Mat){
+	const float pi = 3.1415926535897932384626433832795f;
+	float A2 = Mat.aRoughness;
+	vec4 F = Mat.Reflect0 + (Mat.Reflect90-Mat.Reflect0)*pow(clamp(1.0f-LR.VdotH, 0.0f, 1.0f), 5.0f);
+	
+    float GGXV = LR.NdotL*sqrt(LR.NdotV * LR.NdotV * (1.0 - A2) +A2);
+    float GGXL = LR.NdotV*sqrt(LR.NdotL * LR.NdotL * (1.0 - A2) +A2);
+	float G = max(GGXV+GGXL, 0.0f);
+	if(G>0.0f) G = 0.5f/G;
+	float K = (LR.NdotH*A2-LR.NdotH)*LR.NdotH+1.0f;
+	float D = A2/(pi*K*K);
+	vec4 fSpecular = F*G*D;
+	vec4 fDiffuse = (1.0f-F)*(Mat.Diffuse/pi);	
+	return vec4(L.m_Color.xyz, 1.0f)*L.m_Color.w*LR.Att*LR.NdotL*(fSpecular+fDiffuse);
+}

@@ -1,0 +1,85 @@
+#module Vertex DirectX11_1
+struct Vertex {
+	float4 Position : POSITION;
+	float4 TexCoord : TEXCOORD;
+};
+struct Pixel {
+	float4 Position : SV_POSITION;
+	float4 TexCoord : TEXCOORD0;
+};
+
+Pixel main(Vertex In) {
+	Pixel O;
+	O.Position = In.Position;
+	O.TexCoord = In.TexCoord;
+	return O;
+}
+#module Pixel DirectX11_1
+struct Pixel {
+	float4 Position : SV_POSITION;
+	float4 TexCoord : TEXCOORD0;
+};
+
+Texture2D TexA;
+SamplerState TexASampler;
+Texture2D TexB;
+SamplerState TexBSampler;
+float4 main(Pixel In) : SV_TARGET{
+	float4 TA = TexA.Sample(TexASampler, In.TexCoord.xy);
+	float4 TB = TexB.Sample(TexBSampler, In.TexCoord.xy);
+	return (TA+TB) - (TA*TB);
+}
+#module Vertex OpenGL3_2 OpenGL4_4
+#version 330
+in vec4 Position | 0;
+in vec4 TexCoord | 1;
+out vec4 pTexCoord;
+void main(void) {
+	gl_Position = Position;
+	pTexCoord = TexCoord;
+}
+#module Pixel OpenGL3_2 OpenGL4_4
+#version 330
+in vec4 pTexCoord;
+uniform sampler2D TexA;
+uniform sampler2D TexB;
+out vec4 p_Color | 0 | Output;
+void main(void) {
+	vec4 TA = texture(TexA, vec2(pTexCoord.x, 1.0f-pTexCoord.y));
+	vec4 TB = texture(TexB, vec2(pTexCoord.x, 1.0f-pTexCoord.y));
+	p_Color = (TA+TB) - (TA*TB);
+}
+#module Vertex OpenGL2_1
+attribute vec4 Position | 0;
+attribute vec4 TexCoord | 1;
+varying vec4 pTexCoord;
+void main(void) {
+	gl_Position = Position;
+	pTexCoord = TexCoord;
+}
+#module Pixel OpenGL2_1
+varying vec4 pTexCoord;
+uniform sampler2D TexA;
+uniform sampler2D TexB;
+void main(void) {
+	vec4 TA = texture2D(TexA, vec2(pTexCoord.x, 1.0-pTexCoord.y));
+	vec4 TB = texture2D(TexB, vec2(pTexCoord.x, 1.0-pTexCoord.y));
+	gl_FragColor = (TA+TB) - (TA*TB);
+}
+#module Vertex OpenGLES2
+attribute highp vec4 Position | 0;
+attribute lowp vec4 TexCoord | 1;
+varying lowp vec4 pTexCoord;
+void main(void) {
+	gl_Position = Position;
+	pTexCoord = TexCoord;
+}
+#module Pixel OpenGLES2
+varying lowp vec4 pTexCoord;
+uniform sampler2D TexA;
+uniform sampler2D TexB;
+void main(void) {
+	lowp vec4 TA = texture2D(TexA, vec2(pTexCoord.x, 1.0-pTexCoord.y));
+	lowp vec4 TB = texture2D(TexB, vec2(pTexCoord.x, 1.0-pTexCoord.y));
+	gl_FragColor = (TA+TB) - (TA*TB);
+}

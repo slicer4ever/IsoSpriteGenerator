@@ -1,0 +1,44 @@
+#module Pixel DirectX11_1
+TextureCube DiffuseEnvTex;
+TextureCube SpecularEnvTex;
+Texture2D brdfLUTTex;
+
+SamplerState DiffuseEnvSmp;
+SamplerState SpecularEnvSmp;
+SamplerState brdfLUTSmp;
+
+float4 IBLRadianceGGX(float Roughness, float4 Specular, float3 Normal, float3 View){
+	uint Width, Height, MipCount;
+	float NdotV = saturate(dot(Normal, View));
+	float3 Reflection = normalize(reflect(-View, Normal));
+	SpecularEnvTex.GetDimensions(0, Width, Height, MipCount);
+	float LOD = Roughness*float(MipCount);
+	float2 brdf = brdfLUTTex.Sample(brdfLUTSmp, float2(NdotV, Roughness)).rg;
+	float4 SpecularSmp = SpecularEnvTex.SampleLevel(SpecularEnvSmp, Reflection, LOD);
+	return SpecularSmp*(Specular*brdf.x+brdf.y);
+}
+
+float4 IBLRadianceLambertian(float4 Diffuse, float3 Normal){
+	float4 DiffuseSmp = DiffuseEnvTex.Sample(DiffuseEnvSmp, Normal);
+	return DiffuseSmp*Diffuse;
+}
+
+#module Pixel OpenGL4_5
+uniform samplerCube DiffuseEnvTex;
+uniform samplerCube SpecularEnvTex;
+uniform sampler2D brdfLUTTex;
+
+vec4 IBLRadianceGGX(float Roughness, vec4 Specular, vec3 Normal, vec3 View){
+	float NdotV = clamp(dot(Normal, View), 0.0f, 1.0f);
+	vec3 Reflection = normalize(reflect(-View, Normal));
+	int MipCount = textureQueryLevels(SpecularEnvTex);
+	float LOD = Roughness*float(MipCount);
+	vec2 brdf = texture(brdfLUTTex, vec2(NdotV, Roughness)).rg;
+	vec4 SpecularSmp = textureLod(SpecularEnvTex, Reflection, LOD);
+	return SpecularSmp*(Specular*brdf.x+brdf.y);
+}
+
+vec4 IBLRadianceLambertian(vec4 Diffuse, vec3 Normal){
+	vec4 DiffuseSmp = texture(DiffuseEnvTex, Normal);
+	return DiffuseSmp*Diffuse;
+}

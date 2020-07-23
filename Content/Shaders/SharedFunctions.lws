@@ -1,0 +1,123 @@
+#include "Structures.lws"
+#module Vertex|Pixel|Compute DirectX11_1
+#ifndef NOTRANSFORM
+#ifdef SKELETON
+float4x4 BlendMatrix(float4 BoneWeight, int4 BoneIdxs){
+	float4x4 Mat = mul(BoneMatrixs[BoneIdxs.x], BoneWeight.x)+
+				   mul(BoneMatrixs[BoneIdxs.y], BoneWeight.y)+ 
+				   mul(BoneMatrixs[BoneIdxs.z], BoneWeight.z)+
+				   mul(BoneMatrixs[BoneIdxs.w], BoneWeight.w);
+	return Mat;
+}
+
+float4x4 GetTransformMatrix(Vertex In){
+	return mul(TransformMatrix, BlendMatrix(In.BoneWeight, In.BoneIndices));
+}
+#else
+float4x4 GetTransformMatrix(Vertex In){
+	return TransformMatrix;
+}
+#endif
+#endif
+
+float4 SRGBToLinear(float4 RGBA){
+	return float4(pow(abs(RGBA.xyz), float3(Gamma, Gamma, Gamma)), RGBA.w);
+}
+
+float4 LinearToSRGB(float4 RGBA){
+	return float4(pow(abs(RGBA.xyz), float3(InvGamma, InvGamma, InvGamma)), RGBA.w);
+}
+
+float4 ToneMap(float4 RGBA, float Alpha){
+	const float Exposure = 1.0f;
+	return LinearToSRGB(float4(RGBA.xyz*Exposure, Alpha));
+}
+
+#ifdef USEGPIXELDATA
+float4 SampleIf(Texture2D Tex, SamplerState Smp, uint TexID, Pixel In, bool MakeLinear, float4 DefaultValue){
+	if((Material.HasTexturesFlag&(1<<TexID))==0) return DefaultValue;
+	float4 R = Tex.Sample(Smp, In.TexCoords[TexID]);
+	if(MakeLinear) R = SRGBToLinear(R);
+	return R;
+}
+
+float4 SampleIf(Texture2D Tex, SamplerState Smp, uint TexID, Pixel In, bool MakeLinear){
+	if((Material.HasTexturesFlag&(1<<TexID))==0) return float4(1.0f, 1.0f, 1.0f, 1.0f);
+	float4 R = Tex.Sample(Smp, In.TexCoords[TexID]);
+	if(MakeLinear) R = SRGBToLinear(R);
+	return R;
+}
+
+float4 SampleIf(Texture2D Tex, SamplerState Smp, uint TexID, float2 TexCoord, bool MakeLinear){
+	if((Material.HasTexturesFlag&&(1<<TexID))==0) return float4(1.0f, 1.0f, 1.0f, 1.0f);
+	float2 SubTex = Material.SubTextures[TexID].xy + Material.SubTextures[TexID].zw*TexCoord;
+	float4 R = Tex.Sample(Smp, SubTex);
+	if(MakeLinear) R = SRGBToLinear(R);
+	return R;
+}
+#endif
+
+#module Vertex|Pixel|Compute OpenGL4_5
+#ifndef NOTRANSFORM
+#ifdef SKELETON
+mat4 BlendMatrix(vec4 BoneWeight, ivec4 BoneIdxs){
+	mat4 Mat = BoneMatrixs[BoneIdxs.x]*BoneWeight.x+
+			   BoneMatrixs[BoneIdxs.y]*BoneWeight.y+ 
+			   BoneMatrixs[BoneIdxs.z]*BoneWeight.z+
+			   BoneMatrixs[BoneIdxs.w]*BoneWeight.w;
+	return Mat;
+}
+
+mat4 GetTransformMatrix(){
+	return TransformMatrix * BlendMatrix(vBoneWeight, vBoneIndices);
+}
+
+#else
+
+mat4 GetTransformMatrix(){
+	return TransformMatrix;
+}
+
+#endif
+#endif
+
+#ifdef POINT
+vec4 Project(vec4 Pos){	
+	vec4 P = Pos/Pos.w;
+	//P.z *= -1.0f;
+	float L = length(P.xyz);
+	P /= L;
+	return vec4(P.x/P.z+1.0f, P.y/P.z+1.0f, L/30.0f, P.z);
+}
+#endif
+
+vec4 SRGBToLinear(vec4 RGBA){
+	//return RGBA;
+	return vec4(pow(RGBA.xyz, vec3(Gamma)), RGBA.w);
+}
+
+vec4 LinearToSRGB(vec4 RGBA){
+	//return RGBA;
+	return vec4(pow(RGBA.xyz, vec3(InvGamma)), RGBA.w);
+}
+
+vec4 ToneMap(vec4 RGBA, float Alpha){
+	const float Exposure = 1.0f;
+	return LinearToSRGB(vec4(RGBA.xyz*Exposure, Alpha));
+}
+
+#ifdef USEGPIXELDATA
+vec4 SampleIf(sampler2D Tex, uint TexID, bool MakeLinear, vec4 DefaultValue){
+	if((Material.HasTexturesFlag&(1<<TexID))==0) return DefaultValue;
+	vec4 R = texture(Tex, p.TexCoords[TexID]);
+	if(MakeLinear) R = SRGBToLinear(R);
+	return R;
+}
+
+vec4 SampleIf(sampler2D Tex, uint TexID, bool MakeLinear){
+	if((Material.HasTexturesFlag&(1<<TexID))==0) return vec4(1.0f, 1.0f, 1.0f, 1.0f);
+	vec4 R = texture(Tex, p.TexCoords[TexID]);
+	if(MakeLinear) R = SRGBToLinear(R);
+	return R;
+}
+#endif

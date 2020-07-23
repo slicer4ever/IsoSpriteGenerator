@@ -1,0 +1,88 @@
+//Adapted from original source: https://www.shadertoy.com/view/4tdSWr
+#module Pixel OpenGL4_5
+#version 440
+#define USEGLOBALDATA
+#define USEPASSDATA
+#define USEMODELDATA
+#define USEGPIXELDATA
+#define USEGPIXELINPUT
+#define NOTRANSFORM
+#include "SharedFunctions.lws"
+#module Pixel DirectX11_1
+
+static const float2x2 m = float2x2( 1.6f,  1.2f, -1.2f,  1.6f );
+
+float2 hash( float2 p ) {
+	p = float2(dot(p,float2(127.1f,311.7f)), dot(p,float2(269.5f,183.3f)));
+	return -1.0f + 2.0f*frac(sin(p)*43758.5453123f);
+}
+
+float noise(float2 p) {
+    const float K1 = 0.366025404; // (sqrt(3)-1)/2;
+    const float K2 = 0.211324865; // (3-sqrt(3))/6;
+	float2 i = floor(p + (p.x+p.y)*K1);	
+    float2 a = p - i + (i.x+i.y)*K2;
+	float aX = step(a.y, a.x);
+    float2 o = float2(aX, 1.0f-aX);
+    float2 b = a - o + K2;
+	float2 c = a - 1.0 + 2.0*K2;
+    float3 h = max(0.5f-float3(dot(a,a), dot(b,b), dot(c,c) ), 0.0f );
+	float3 n = h*h*h*h*float3( dot(a,hash(i+0.0f)), dot(b,hash(i+o)), dot(c,hash(i+1.0f)));
+    return dot(n, float3(70.0f, 70.0f, 70.0f));	
+}
+
+float CalculateRidgedNoise(float2 uv, float Time, float Weight, float WeightScalar, int LoopCount){
+	float v = 0.0f;
+	[unroll]
+	for(int i=0;i<LoopCount;i++){
+		v += abs(Weight * noise(uv));
+		uv = mul(m, uv)+Time;
+		Weight *= WeightScalar;
+	}
+	return v;
+}
+
+float CalculateNoise(float2 uv, float Time, float Weight, float WeightScalar, int LoopCount){
+	float v = 0.0f;
+	[unroll]
+	for(int i=0;i<LoopCount;i++){
+		v += Weight*noise(uv);
+		uv = mul(m, uv)+Time;
+		Weight *= WeightScalar;
+	}
+	return v;
+}
+
+float4 main(Pixel In) : SV_TARGET{
+	float cloudscale = Material.MaterialColorA.x;
+	float speed = Material.MaterialColorA.y;
+	float clouddark = Material.MaterialColorA.z;
+	float cloudlight = Material.MaterialColorA.w;
+	float cloudcover = Material.MaterialColorB.x;
+	float cloudalpha = Material.MaterialColorB.y;
+	float Time = Material.MaterialColorB.w * speed;
+	float2  uv = In.TexCoords[0].xy;
+	
+	//calculate fbm
+	float q = CalculateNoise(uv*cloudscale*0.5f, 1.0f, 0.1f, 0.4f, 7);
+	
+	//Calculate ridged noise shape
+	float r = CalculateRidgedNoise((uv*cloudscale) - (q - Time), Time, 0.8f, 0.7f, 8);
+	
+	//Calculate noise shape
+	float f = CalculateNoise((uv*cloudscale) - (q - Time), Time, 0.7f, 0.6f, 8);
+	f *= r+f;
+	
+	//Calculate ridged color
+	float cr = CalculateRidgedNoise((uv*cloudscale*3.0f)- (q - (Time*3.0f)), Time*3.0f, 0.4f, 0.6f, 7);
+	
+	//Calculate color
+	float c = CalculateNoise((uv*cloudscale*2.0f) - (q - (Time*2.0f)), Time*2.0f, 0.4f, 0.6f, 7);
+	c += cr;
+	
+	float4 cloudcolour = float4(float3(1.1f, 1.1f, 1.1f)*clamp((clouddark+cloudlight*c), 0.0f, 1.0f), 1.0f);
+	f = cloudcover + cloudalpha*f*r;
+	
+	return lerp(float4(0.0f, 0.0f, 0.0f, 0.0f), clamp(cloudcolour, 0.0f, 1.0f), clamp(f+c, 0.0f, 1.0f))*float4(1.0f, 1.0f, 1.0f, In.Transparency);
+}
+

@@ -1,0 +1,237 @@
+#module Vertex|Pixel|Compute DirectX11_1
+static const int MaxPasses = 8;
+static const int MaxRawPasses = 32;
+static const int MaxBones = 32;
+static const int MaxTextures = 6;
+static const int MaxTileLights = 64;
+
+static const uint NormalTexID = 0;
+static const uint OcclussionTexID = 1;
+static const uint EmissiveTexID = 2;
+
+static const uint PBRAlbedoTexID = 3;
+static const uint PBRMetallicRoughnessTexID = 4;
+
+static const uint SGDiffuseColorTexID = 3;
+static const uint SGSpecularColorTexID = 4;
+
+static const uint ULColorTexID = 3;
+
+static const uint SBBackTexID = 0;
+static const uint SBHorizonTexID = 1;
+static const uint SBGlowTexID = 2;
+
+
+static const float Gamma = 2.2f;
+static const float InvGamma = 1.0f/Gamma;
+
+
+static const uint RenderDefault = 0;
+static const uint RenderEmissions = 1;
+static const uint RenderNormals = 2;
+static const uint RenderAlbedo = 3;
+static const uint RenderMetallic = 4;
+static const uint RenderTypeFlags = 0xF;
+static const uint RenderWithIBL = 0x80000000;
+
+#ifdef USEGLOBALDATA
+cbuffer GlobalData{
+	float4x4 ProjViewMatrixs[MaxRawPasses];
+	float4 ViewPositions[MaxRawPasses];
+	float4 TargetValues[MaxRawPasses];
+	float4 SunDirection;
+	float2 ScreenSize;
+	float2 iShadowCubeSize;
+	int2 ThreadDimensions;
+	int2 TileSize;
+	uint LightCount;
+	uint RenderFlag;
+};
+#endif
+
+#ifdef USEPASSDATA
+cbuffer PassData{
+	float4 FrustumPoints[6];
+	int PassIndex;
+	int PDPad[3];
+};
+#endif
+
+#ifdef USEMODELDATA
+struct GMaterial{
+	float4 MaterialColorA;
+	float4 MaterialColorB;
+	float4 EmissiveFactor;
+	float4 SubTextures[MaxTextures];
+	uint HasTexturesFlag;
+	uint MPad[3];
+};
+
+cbuffer AnimData{
+	float4x4 BoneMatrixs[MaxBones];
+};
+
+cbuffer ModelData{
+   float4x4 TransformMatrix;
+   GMaterial Material;
+};
+#endif
+
+#ifdef USELIGHTINGDATA
+struct Light{
+	float4 m_Position;
+	float4 m_Direction;
+	float4 m_Color;
+	uint4 m_ShadowIndex;
+};
+
+StructuredBuffer<Light> Lights;
+#ifdef COMPUTESHADER
+RWStructuredBuffer<uint> LightArray;
+#else
+StructuredBuffer<uint> LightArray;
+#endif
+#endif
+
+#ifdef USEGVERTEXDATA
+struct Vertex{
+  float4 Position : POSITION;
+  float4 TexCoord : TEXCOORD;
+  float4 Tangent : TANGENT;
+  float4 Normal : NORMAL;
+#ifdef SKELETON
+  float4 BoneWeight : BLENDWEIGHT;
+  int4 BoneIndices : BLENDINDICES;
+#endif
+};
+#endif
+
+#ifdef USEGPIXELDATA
+struct Pixel{
+  float4 Position : SV_POSITION;
+  float4 WPosition : POSITION0;
+  float4 TPositions[MaxPasses] : POSITION1;
+  float2 TexCoords[MaxTextures] : TEXCOORD0;
+  float3x3 TBN : NORMAL0;
+  float Transparency : Output;
+};
+#ifdef USEGPIXELINPUT
+struct oPixel{
+	float4 Color : SV_TARGET0;
+	float4 Emission : SV_TARGET1;
+};
+#endif
+#endif
+#module Vertex|Pixel|Compute OpenGL4_5
+const int MaxPasses = 8;
+const int MaxRawPasses = 32;
+const int MaxBones = 32;
+const int MaxTextures = 6;
+const int MaxTileLights = 64;
+
+const uint NormalTexID = 0;
+const uint OcclussionTexID = 1;
+const uint EmissiveTexID = 2;
+
+const uint PBRAlbedoTexID = 3;
+const uint PBRMetallicRoughnessTexID = 4;
+
+const uint SGDiffuseColorTexID = 3;
+const uint SGSpecularColorTexID = 4;
+
+const uint ULColorTexID = 3;
+
+const uint DoIBLFlag = 0x80000000;
+
+const float Gamma = 2.2f;
+const float InvGamma = 1.0f/Gamma;
+
+
+#ifdef USEGLOBALDATA
+layout(std140) uniform GlobalData{
+	mat4 ProjViewMatrixs[MaxRawPasses];
+	vec4 ViewPositions[MaxRawPasses];
+	vec4 TargetValues[MaxRawPasses];
+	vec4 SunDirection;
+	vec2 ScreenSize;
+	vec2 iShadowCubeSize;
+	ivec2 ThreadDimensions;
+	ivec2 TileSize;
+	int LightCount;
+};
+
+#endif
+
+#ifdef USEPASSDATA
+layout(std140) uniform PassData{
+	vec4 FrustumPoints[6];
+	int PassIndex;
+	int PDPad[3];
+};
+#endif
+
+#ifdef USEMODELDATA
+struct GMaterial{
+	vec4 MaterialColorA;
+	vec4 MaterialColorB;
+	vec4 EmissiveFactor;
+	vec4 SubTextures[MaxTextures];
+	uint HasTexturesFlag;
+	uint MPad[3];
+};
+
+layout(std140) uniform AnimData{
+	mat4 BoneMatrixs[MaxBones];
+};
+
+layout(std140) uniform ModelData{
+   mat4 TransformMatrix;
+   GMaterial Material;
+};
+#endif
+
+#ifdef USELIGHTINGDATA
+struct Light{
+	vec4 m_Position;
+	vec4 m_Direction;
+	vec4 m_Color;
+	ivec4 m_ShadowIndex;
+};
+
+layout(std430, binding=0) buffer Lights{
+	Light LightsD[];
+};
+
+layout(std430, binding=1) buffer LightArray{
+	uint LightArrayD[];
+};
+#endif
+
+#ifdef USEGPIXELDATA
+#ifdef USEGPIXELINPUT
+
+layout(location = 0) out vec4 pColor;
+layout(location = 1) out vec4 pEmission;
+
+in PixelData{
+#else
+out PixelData{
+#endif
+  vec4 WPosition;
+  vec4 TPositions[MaxPasses];
+  vec2 TexCoords[MaxTextures];
+  mat3 TBN;
+  float Transparency;
+}p;
+#endif
+
+#ifdef USEGVERTEXDATA
+in vec4 vPosition;
+in vec4 vTexCoord;
+in vec4 vTangent;
+in vec4 vNormal;
+#ifdef SKELETON
+in vec4 vBoneWeight;
+in ivec4 vBoneIndices;
+#endif
+#endif

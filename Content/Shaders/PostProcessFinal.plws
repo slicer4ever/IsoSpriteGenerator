@@ -1,0 +1,52 @@
+#module Pixel DirectX11_1
+struct Pixel{
+	float4 Position : SV_POSITION;
+	float4 TexCoord : TEXCOORD0;
+};
+
+
+Texture2D ColorTex;
+Texture2D EmissiveTex;
+Texture2D PreHighlightTex;
+Texture2D PostHighlightTex;
+SamplerState ColorSmp;
+SamplerState EmissiveSmp;
+SamplerState PreHighlightSmp;
+SamplerState PostHighlightSmp;
+
+float4 main(Pixel In) : SV_TARGET{
+	const float Intensity = 3.0f;
+	float4 TA = ColorTex.Sample(ColorSmp, In.TexCoord.xy);
+	float4 TB = EmissiveTex.Sample(EmissiveSmp, In.TexCoord.xy);
+	
+	float4 TC = PreHighlightTex.Sample(PreHighlightSmp, In.TexCoord.xy);
+	float4 TD = PostHighlightTex.Sample(PostHighlightSmp, In.TexCoord.xy);
+	
+	float4 ViewColor = (TA+TB) - (TA*TB);
+	float4 HighlightColor = (TD-TC);
+	
+	return ViewColor + HighlightColor*Intensity;
+};
+#module Pixel OpenGL3_2 OpenGL4_5
+#version 330
+in vec4 pTexCoord;
+out vec4 oColor;
+
+uniform sampler2D ColorTex;
+uniform sampler2D EmissiveTex;
+uniform sampler2D PreHighlightTex;
+uniform sampler2D PostHighlightTex;
+
+void main(void){
+	const float Intensity = 3.0f;
+	vec4 TA = texture(ColorTex, pTexCoord.xy);
+	vec4 TB = texture(EmissiveTex, pTexCoord.xy);
+	
+	vec4 TC = texture(PreHighlightTex, pTexCoord.xy);
+	vec4 TD = texture(PostHighlightTex, pTexCoord.xy);
+	
+	vec4 ViewColor = (TA+TB) - (TA*TB);
+	vec4 HighlightColor = (TD-TC);
+	oColor = ViewColor + HighlightColor*Intensity;
+	return;
+}

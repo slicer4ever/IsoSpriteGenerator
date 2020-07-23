@@ -1,0 +1,57 @@
+#module Pixel DirectX11_1
+
+struct PMaterial{
+	float4 Diffuse;
+};
+
+Texture2D ColorTex;
+SamplerState ColorSmp;
+
+
+float4 RenderDebug(Pixel In, uint RType, float4 Color, float Alpha){
+	if(RType==RenderAlbedo) return ToneMap(Material.MaterialColorA*SampleIf(ColorTex, ColorSmp, ULColorTexID, In, true), Alpha);
+	return Color;
+}
+
+PMaterial PrepareMaterial(Pixel In, inout oPixel P, float3 Normal, float3 View, inout float Alpha){
+	float4 Color = Material.MaterialColorA;
+	Color *= SampleIf(ColorTex, ColorSmp, ULColorTexID, In, true);
+	PMaterial R;
+	R.Diffuse = Color;
+	Alpha = Alpha*Color.a;
+	P.Color += R.Diffuse;
+	return R;
+}
+
+float4 ProcessIBL(PMaterial Mat, float3 Normal, float3 View, float Att){
+	return float4(0.0f, 0.0f, 0.0f, 0.0f);
+}
+
+float4 ProcessLight(Light L, LightResults LR, PMaterial Mat){
+	return float4(0.0f, 0.0f, 0.0f, 0.0f);
+}
+#module Pixel OpenGL4_5
+
+struct PMaterial{
+	vec4 Diffuse;
+};
+
+uniform sampler2D ColorTex;
+
+PMaterial PrepareMaterial(inout float Alpha){
+	vec4 Color = Material.MaterialColorA;
+	Color *= SampleIf(ColorTex, ULColorTexID, true);
+	PMaterial R;
+	R.Diffuse = Color;
+	Alpha = Alpha*Color.a;
+	pColor = ToneMap(R.Diffuse, Alpha);
+	return R;
+}
+
+vec4 ProcessIBL(PMaterial Mat, vec3 Normal, vec3 View, float Att){
+	return vec4(0.0f, 0.0f, 0.0f, 0.0f);
+}
+
+vec4 ProcessLight(Light L, LightResults LR, PMaterial Mat){
+	return vec4(0.0f, 0.0f, 0.0f, 0.0f);
+}

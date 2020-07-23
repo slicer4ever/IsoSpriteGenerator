@@ -1,0 +1,37 @@
+
+<Component Name="UILightSunProps">
+	<Label Flag="PATL|LATL" Style="MenuFnt" Value="Rotation:">
+		<TextInput Name="DirectionTI" Style="TISmallNbrStyle" Flag="PAMR|LAML" Position="x: 5px" Size="x: 100px y: 20px">
+			<Label Flag="PAMR|LAML" Style="MenuFnt" Position="x: 5px" Value="Pitch:">
+				<TextInput Name="PitchTI" Style="TISmallNbrStyle" Flag="PAMR|LAML" Position="x: 5px" Size="x: 100px y: 20px" />
+			</Label>
+		</TextInput>
+		<Label Flag="PABL|LATL" Style="MenuFnt" Value="Flags:" Position="y: -10px">
+			<Toggle Name="ShadowCastFlag" Flag="PAMR|LAML|NoAutoSize" Value="Shadow Caster" Size="x: 110px y: 20px" Position="x: 5px">
+				<Toggle Name="DrawSunFlag" Flag="PAMR|LAML|NoAutoSize" Value="Draw Sun" Size="x: 80px y: 20px" Position="x: 5px" Tooltip="Hotkey: Ctrl+L" />
+			</Toggle>
+		</Label>
+	</Label>
+</Component>
+
+<Component Name="UILightIBLProps">
+	<LblBtn Name="brdfBtn" Flag="PATL|LATL|NoAutoSize" Size="x: 150px y: 20px" Value="Open brdf">
+		<Rect Name="brdfPreview" Flag="PABL|LATL" Size="x: 100% y: 50px" Material="Black" />
+		<LblBtn Name="DiffuseBtn" Flag="PAMR|LAML|NoAutoSize" Size="x: 150px y: 20px" Position="x: 5px" Value="Open diffuseEnv">
+			<Rect Name="DiffusePreview" Flag="PABL|LATL" Size="x: 100% y: 50px" Material="Black" />
+			<LblBtn Name="SpecularBtn" Flag="PAMR|LAML|NoAutoSize" Size="x: 150px y: 20px" Position="x: 5px" Value="Open specularEnv">
+				<Rect Name="SpecularPreview" Flag="PABL|LATL" Size="x: 100% y: 50px" Material="Black" />
+			</LblBtn>
+		</LblBtn>
+	</LblBtn>
+</Component>
+
+<Component Name="UILightingProps">
+	<Label Flag="PATL|LATL" Style="MenuFnt" Value="Source Type:" Position="x: 5px y: -5px">
+		<Toggle Name="SunTgl" Value="Sun" Position="x: 5px" Flag="PAMR|LAML|NoAutoSize" Size="x: 40px y: 20px">
+			<Toggle Name="IBLTgl" Value="IBL" Position="x: 5px" Flag="PAMR|LAML|NoAutoSize" Size="x: 40px y: 20px" Tooltip="Image based lighting" />
+		</Toggle>
+		<UILightSunProps Name="UILightSunProps" Flag="PABL|LATL|NoAutoSize|Invisible" Position="y: -10px" />
+		<UILightIBLProps Name="UILightIBLProps" Flag="PATR|LATL|NoAutoSize" Position="x: 110px" />
+	</Label>
+</Component>

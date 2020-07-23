@@ -1,0 +1,31 @@
+#module Vertex DirectX11_1
+struct Vertex{
+	float4 Position : POSITION;
+	float4 TexCoord : TEXCOORD;
+};
+
+struct Pixel{
+	float4 Position : SV_POSITION;
+	float4 TexCoord : TEXCOORD0;
+};
+
+Pixel main(Vertex In) {
+	Pixel p;
+	p.Position = In.Position;
+	p.TexCoord = In.TexCoord;
+	return p;
+};
+
+#module Vertex OpenGL3_2 OpenGL4_5
+#version 330
+
+in vec4 vPosition;
+in vec4 vTexCoord;
+
+out vec4 pTexCoord;
+
+void main(void){
+	gl_Position = vPosition;
+	pTexCoord = vec4(vTexCoord.x, 1.0f-vTexCoord.y, vTexCoord.zw);
+	return;
+}

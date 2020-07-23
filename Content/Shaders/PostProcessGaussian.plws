@@ -1,0 +1,43 @@
+#module Pixel DirectX11_1
+cbuffer GKernel{
+	float4 Factor;
+	float4 Dir;
+};
+
+struct Pixel {
+	float4 Position : SV_POSITION;
+	float4 TexCoordA : TEXCOORD0;
+	float4 TexCoordB : TEXCOORD1;
+	float4 TexCoordC : TEXCOORD2;
+};
+Texture2D BlurTex;
+SamplerState BlurTexSmp;
+float4 main(Pixel In) : SV_TARGET{
+	float4 Color;
+	Color  = BlurTex.Sample(BlurTexSmp, In.TexCoordA.xy)*Factor.x;
+	Color += BlurTex.Sample(BlurTexSmp, In.TexCoordA.zw)*Factor.y;
+	Color += BlurTex.Sample(BlurTexSmp, In.TexCoordB.xy)*Factor.z;
+	Color += BlurTex.Sample(BlurTexSmp, In.TexCoordB.zw)*Factor.y;
+	Color += BlurTex.Sample(BlurTexSmp, In.TexCoordC.xy)*Factor.x;
+	return Color;
+}
+
+#module Pixel OpenGL3_2 OpenGL4_5
+#version 330
+layout(std140) uniform GaussianKernel {
+	vec4 Factor;
+	vec4 Dir;
+};
+in vec4 pTexCoordA;
+in vec4 pTexCoordB;
+in vec4 pTexCoordC;
+uniform sampler2D BlurTex;
+out vec4 oColor;
+void main(void) {
+	oColor = texture(BlurTex, pTexCoordA.xy)*Factor.x;
+	oColor += texture(BlurTex, pTexCoordA.zw)*Factor.y;
+	oColor += texture(BlurTex, pTexCoordB.xy)*Factor.z;
+	oColor += texture(BlurTex, pTexCoordB.zw)*Factor.y;
+	oColor += texture(BlurTex, pTexCoordC.xy)*Factor.x;
+	return;
+}

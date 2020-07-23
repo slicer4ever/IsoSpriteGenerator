@@ -1,0 +1,50 @@
+#module Vertex DirectX11_1
+cbuffer GKernel{
+	float4 Factor;
+	float4 Dir;
+};
+
+struct Vertex {
+	float4 Position : POSITION;
+	float4 TexCoord : TEXCOORD;
+};
+struct Pixel {
+	float4 Position : SV_POSITION;
+	float4 TexCoordA : TEXCOORD0;
+	float4 TexCoordB : TEXCOORD1;
+	float4 TexCoordC : TEXCOORD2;
+};
+
+Pixel main(Vertex In) {
+	Pixel O;
+	O.Position = In.Position;
+	O.TexCoordA = float4(In.TexCoord.xy-Dir.xy*2, 
+						 In.TexCoord.xy-Dir.xy*1);
+	O.TexCoordB = float4(In.TexCoord.xy, 
+						 In.TexCoord.xy+Dir.xy*1);
+	O.TexCoordC = float4(In.TexCoord.xy+Dir.xy*2, 
+						 In.TexCoord.xy);
+	return O;
+}
+#module Vertex OpenGL3_2 OpenGL4_5
+#version 330
+layout(std140) uniform GaussianKernel {
+	vec4 Factor;
+	vec4 Dir;
+};
+in vec4 vPosition;
+in vec4 vTexCoord;
+out vec4 pTexCoordA;
+out vec4 pTexCoordB;
+out vec4 pTexCoordC;
+void main(void) {
+	gl_Position = vPosition;
+	vec2 TexCoord = vec2(vTexCoord.x, 1.0f-vTexCoord.y);
+	pTexCoordA = vec4(TexCoord-Dir.xy*2.0f,
+					  TexCoord-Dir.xy*1.0f);
+	pTexCoordB = vec4(TexCoord,
+					  TexCoord+Dir.xy*1.0f);
+	pTexCoordC = vec4(TexCoord+Dir.xy*2.0f,
+					  TexCoord);
+					  
+}

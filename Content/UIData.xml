@@ -1,0 +1,64 @@
+<Localization />
+<AssetManager>
+	<Font Name="ArialFont" Path="App:arial.arfont" />
+	<Shader Type="Vertex" Name="UIVertexShader" Path="FontVertex" />
+	<Shader Type="Pixel" Name="UIFontShader" Path="FontMSDF" />
+	<Shader Type="Pixel" Name="UITextureShader" Path="UITexture" />
+	<Shader Type="Pixel" Name="UIColorShader" Path="UIColor" />
+	<ShaderBuilder Path="App:Shaders/VertexShader.vlws">
+		<InputMap vPosition="Vec4" vTexCoord="Vec4" vTangent="Vec4" vNormal="Vec4" vBoneWeight="Vec4" vBoneIndices="Vec4" />
+		<BlockMap GlobalData PassData AnimData ModelData />
+		<Shader Type="Vertex" Name="StaticVertexShader" />
+		<Shader Type="Vertex" Name="SkeletonVertexShader" SKELETON />
+	</ShaderBuilder>
+	<ShaderBuilder Path="App:Shaders/PixelShader.plws">
+		<Shader Type="Pixel" Name="PBRMetallicShader" METALLICROUGHNESS >
+			<ResourceMap Lights LightArray DepthTex DepthCubeTex DiffuseEnvTex SpecularEnvTex brdfLUTTex NormalTex OcclussionTex EmissiveTex AlbedoTex MetallicRoughnessTex />
+		</Shader>
+		<Shader Type="Pixel" Name="PBRSpecularGlossinessShader" SPECULARGLOSSINESS >
+			<ResourceMap Lights LightArray DepthTex DepthCubeTex DiffuseEnvTex SpecularEnvTex brdfLUTTex NormalTex OcclussionTex EmissiveTex DiffuseColorTex SpecularColorTex />
+		</Shader>
+		<Shader Type="Pixel" Name="PBRUnlitShader" UNLIT >
+			<ResourceMap Lights LightArray DepthTex NormalTex OcclussionTex EmissiveTex ColorTex DepthCubeTex />
+		</Shader>
+	</ShaderBuilder>
+	<Shader Type="Pixel" Name="SkyboxShader" Path="App:Shaders/SkyboxShader.plws">
+		<ResourceMap SkyBackTex SkyHorizonTex SkyGlowTex />
+	</Shader>
+	<Shader Type="Pixel" Name="CloudShader" Path="App:Shaders/CloudShader.plws" />
+	<Shader Type="Compute" Name="LightCullShader" Path="App:Shaders/LightCullShader.clws">
+		<BlockMap GlobalData PassData />
+		<ResourceMap Lights LightArray />
+	</Shader>
+	<Shader Type="Vertex" Name="PostProcessVertex" Path="App:Shaders/PostProcess.vlws">
+		<InputMap vPosition="Vec4" vTexCoord="Vec4" />
+	</Shader>
+	<Shader Type="Vertex" Name="PostProcessGVertex" Path="App:Shaders/PostProcessGaussian.vlws">
+		<InputMap vPosition="Vec4" vTexCoord="Vec4" />
+	</Shader>
+	<Shader Type="Pixel" Name="PostProcessFinal" Path="App:Shaders/PostProcessFinal.plws">
+		<ResourceMap ColorTex EmissiveTex PreHighlightTex PostHighlightTex />
+	</Shader>
+	<Shader Type="Pixel" Name="PostProcessGaussian" Path="App:Shaders/PostProcessGaussian.plws">
+		<ResourceMap BlurTex />
+	</Shader>
+	<Shader Type="Pixel" Name="PostProcessMS" Path="App:Shaders/PostProcessMS.plws">
+		<ResourceMap Tex />
+	</Shader>
+	<Pipeline Name="UIPipeline" Vertex="UIVertexShader" Pixel="UIFontShader" Flags="Blending" CullMode="CW" SourceBlendMode="SrcAlpha" DestBlendMode="OneMinusSrcAlpha" />
+	<Pipeline Name="LightCullPipeline" Compute="LightCullShader" />
+	<Pipeline Name="MetallicRoughnessPipeline" Vertex="StaticVertexShader" Pixel="PBRMetallicShader" Flags="DepthTest" CullMode="CW" DepthCompare="LessEqual" />
+	<Pipeline Name="SpecularGlossinessPipeline" Vertex="StaticVertexShader" Pixel="PBRSpecularGlossinessShader" Flags="DepthTest" CullMode="CW" DepthCompare="LessEqual" />
+	<Pipeline Name="SkyboxPipeline" Vertex="StaticVertexShader" Pixel="SkyboxShader" CullMode="CCW" />
+	<Pipeline Name="CloudPipeline" Vertex="StaticVertexShader" Pixel="CloudShader" CullMode="CW" Flags="DepthTest" DepthCompare="LessEqual" />
+	<Pipeline Name="UnlitPipeline" Vertex="StaticVertexShader" Pixel="PBRUnlitShader" Flags="DepthTest" CullMode="CW" DepthCompare="LessEqual" />
+	<Pipeline Name="ShadowPipeline" Vertex="StaticVertexShader" Flags="DepthTest" CullMode="CCW" DepthCompare="LessEqual" />	
+	<Pipeline Name="FinalPipeline" Vertex="PostProcessVertex" Pixel="PostProcessFinal" CullMode="CW" />
+	<Pipeline Name="GaussianPipeline" Vertex="PostProcessGVertex" Pixel="PostProcessGaussian" CullMode="CW" />
+	<Pipeline Name="PostProcessMSPipeline" Vertex="PostProcessVertex" Pixel="PostProcessMS" CullMode="CW" />
+</AssetManager>
+<UIManager>
+	<Include Src="App:UIStyle.xml" />
+	<Label Flag="PATC|LATC" Style="DefaultStyle" Name="MessageLbl" Font="ArialFont" Value="" />
+	<UIViewer Name="UIViewer" Flag="PABC|LABC|NoAutoSize" Size="x: 100% y: 80px" />
+</UIManager>

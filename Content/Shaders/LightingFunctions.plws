@@ -1,0 +1,155 @@
+#include "ShadowFunctions.plws"
+#module Pixel DirectX11_1
+struct LightResults{
+	float Att;
+	float SNdotL;
+	float NdotL;
+	float NdotV;
+	float NdotH;
+	float LdotH;
+	float VdotH;
+};
+
+LightResults MakeLightData(float3 SurfaceNormal, float3 Normal, float3 nViewDir, float3 LightDir){
+	LightResults R;
+	float3 nHalf = normalize(nViewDir+LightDir);
+	R.SNdotL = saturate(dot(SurfaceNormal, LightDir));
+	R.NdotL = saturate(dot(Normal, LightDir));
+	R.NdotV = saturate(dot(Normal, nViewDir));
+	R.NdotH = saturate(dot(Normal, nHalf));
+	R.LdotH = saturate(dot(LightDir, nHalf));
+	R.VdotH = saturate(dot(nViewDir, nHalf));
+	R.Att = 1.0f;
+	return R;
+};
+
+LightResults doAmbientLight(Light L, float AmbientOcclusion){
+	LightResults R;
+	R.Att = (-L.m_Position.w-1.0f)*AmbientOcclusion;
+	R.SNdotL = 1.0f;
+	R.NdotL = 1.0f;
+	R.NdotV = 0.0f;
+	R.NdotH = 0.75f;
+	R.LdotH = 0.5f;
+	R.VdotH = 0.5f;
+	return R;
+}
+
+LightResults doDirectionalLight(Light L, float3 Position, float3 SurfaceNormal, float3 Normal, float3 nViewDir, float4 TPositions[MaxPasses]){
+	LightResults R = MakeLightData(SurfaceNormal, Normal, nViewDir, -L.m_Direction.xyz);
+	if(doDirectionShadow(L.m_ShadowIndex.x, TPositions, R.Att)) return R;
+	if(doDirectionShadow(L.m_ShadowIndex.y, TPositions, R.Att)) return R;
+	if(doDirectionShadow(L.m_ShadowIndex.z, TPositions, R.Att)) return R;
+	if(doDirectionShadow(L.m_ShadowIndex.w, TPositions, R.Att)) return R;
+	return R;
+}
+
+LightResults doPointLight(Light L, float3 Position, float3 SurfaceNormal, float3 Normal, float3 nViewDir, float4 TPositions[MaxPasses]){
+	float3 Dir = Position-L.m_Position.xyz;
+	float3 nDir = normalize(Dir);
+	float Len = length(Dir);
+	LightResults R = MakeLightData(SurfaceNormal, Normal, nViewDir, -nDir);
+	R.Att = doPointShadow(L.m_ShadowIndex.x, -Dir, -nDir);
+	R.Att = R.Att * (1.0f-saturate((Len-L.m_Direction.x)/L.m_Direction.y));
+	return R;
+}
+
+LightResults doSpotLight(Light L, float3 Position, float3 SurfaceNormal, float3 Normal, float3 nViewDir, float4 TPositions[MaxPasses]){
+	float3 Dir = Position-L.m_Position.xyz;
+	float3 nDir = normalize(Dir);
+	float Len = L.m_Direction.w;
+	float mincos = cos(L.m_Position.w-1.0f);
+	float maxcos = lerp(mincos, 1.0f, 0.5f);
+	float c = dot(L.m_Direction.xyz, nDir);
+	float Dis = dot(L.m_Direction.xyz, Dir);
+	LightResults R = MakeLightData(SurfaceNormal, Normal, nViewDir, -nDir);	
+	R.Att = doSpotShadow(L.m_ShadowIndex.x, TPositions);
+	
+	R.Att = R.Att * (1.0f-smoothstep(Len*0.75f, Len, Dis))*smoothstep(mincos, maxcos, c);
+	return R;
+}
+
+LightResults doLighting(Light L, float AmbientOcclusion, float3 Position, float3 SurfaceNormal, float3 Normal, float3 nViewDir, float4 TPositions[MaxPasses]){
+	if(L.m_Position.w<0.0) return doAmbientLight(L, AmbientOcclusion);
+	else if(L.m_Position.w==0.0f) return doDirectionalLight(L, Position, SurfaceNormal, Normal, nViewDir, TPositions);
+	else if(L.m_Position.w==1.0f) return doPointLight(L, Position, SurfaceNormal, Normal, nViewDir, TPositions);
+	return doSpotLight(L, Position, SurfaceNormal, Normal, nViewDir, TPositions);
+};
+
+#module Pixel OpenGL4_5
+struct LightResults{
+	float Att;
+	float SNdotL;
+	float NdotL;
+	float NdotV;
+	float NdotH;
+	float LdotH;
+	float VdotH;
+};
+
+LightResults MakeLightData(vec3 Position, vec3 SurfaceNormal, vec3 Normal, vec3 nViewDir, vec3 LightDir){
+	LightResults R;
+	
+	vec3 nHalf = normalize(nViewDir+LightDir);
+	R.SNdotL = clamp(dot(SurfaceNormal, LightDir), 0.0f, 1.0f);
+	R.NdotL = clamp(dot(Normal, LightDir), 0.0f, 1.0f);
+	R.NdotV = clamp(dot(Normal, nViewDir), 0.0f, 1.0f);
+	R.NdotH = clamp(dot(Normal, nHalf), 0.0f, 1.0f);
+	R.LdotH = clamp(dot(LightDir, nHalf), 0.0f, 1.0f);
+	R.VdotH = clamp(dot(nViewDir, nHalf), 0.0f, 1.0f);
+	R.Att = 1.0f;
+	return R;
+};
+
+LightResults doAmbientLight(Light L, float AmbientOcclusion){
+	LightResults R;
+	R.Att = (-L.m_Position.w-1.0f)*AmbientOcclusion;
+	R.SNdotL = 1.0f;
+	R.NdotL = 1.0f;
+	R.NdotV = 0.0f;
+	R.NdotH = 0.5f;
+	R.LdotH = 0.5f;
+	R.VdotH = 0.5f;
+	return R;
+}
+
+LightResults doDirectionalLight(Light L, vec3 Position, vec3 SurfaceNormal, vec3 Normal, vec3 nViewDir, vec4 TPositions[MaxPasses]){
+	LightResults R = MakeLightData(Position, SurfaceNormal, Normal, nViewDir, -L.m_Direction.xyz);
+	if(doDirectionShadow(L.m_ShadowIndex.x, TPositions, R.Att)) return R;
+	if(doDirectionShadow(L.m_ShadowIndex.y, TPositions, R.Att)) return R;
+	if(doDirectionShadow(L.m_ShadowIndex.z, TPositions, R.Att)) return R;
+	if(doDirectionShadow(L.m_ShadowIndex.w, TPositions, R.Att)) return R;
+	return R;
+}
+
+LightResults doPointLight(Light L, vec3 Position, vec3 SurfaceNormal, vec3 Normal, vec3 nViewDir, vec4 TPositions[MaxPasses]){
+	vec3 Dir = Position-L.m_Position.xyz;
+	vec3 nDir = normalize(Dir);
+	float Len = length(Dir);
+	LightResults R = MakeLightData(Position, SurfaceNormal, Normal, nViewDir, -nDir);
+	R.Att = doPointShadow(L.m_ShadowIndex.x, -Dir);
+	R.Att = R.Att * (1.0f-clamp((Len-L.m_Direction.y)/L.m_Direction.x, 0.0f, 1.0f));
+	return R;
+}
+
+LightResults doSpotLight(Light L, vec3 Position, vec3 SurfaceNormal, vec3 Normal, vec3 nViewDir, vec4 TPositions[MaxPasses]){
+	vec3 Dir = Position-L.m_Position.xyz;
+	vec3 nDir = normalize(Dir);
+	float Len = L.m_Direction.w;
+	float mincos = cos(L.m_Position.w-1.0f);
+	float maxcos = mix(mincos, 1.0f, 0.5f);
+	float c = dot(L.m_Direction.xyz, nDir);
+	float Dis = dot(L.m_Direction.xyz, Dir);
+	LightResults R = MakeLightData(Position, SurfaceNormal, Normal, nViewDir, -nDir);
+	R.Att = doSpotShadow(L.m_ShadowIndex.x, TPositions);
+	
+	R.Att = R.Att * (1.0f-smoothstep(Len*0.75f, Len, Dis)) * smoothstep(mincos, maxcos, c);
+	return R;
+}
+
+LightResults doLighting(Light L, float AmbientOcclusion, vec3 Position, vec3 SurfaceNormal, vec3 Normal, vec3 nViewDir, vec4 TPositions[MaxPasses]){
+	if(L.m_Position.w<0.0) return doAmbientLight(L, AmbientOcclusion);
+	else if(L.m_Position.w==0.0f) return doDirectionalLight(L, Position, SurfaceNormal, Normal, nViewDir, TPositions);
+	else if(L.m_Position.w==1.0f) return doPointLight(L, Position, SurfaceNormal, Normal, nViewDir, TPositions);
+	return doSpotLight(L, Position, SurfaceNormal, Normal, nViewDir, TPositions);
+};

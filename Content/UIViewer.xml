@@ -1,0 +1,85 @@
+<Component Name="UIFile">
+	<BtnLbl Name="SelectFileBtn" Flag="PATL|LATL|NoAutoSize" Size="x: 75px y: 20px" Position="x: 5px y: -5px" Value="Select File" >
+		<BtnLbl Name="ExportBtn" Flag="PAMR|LAML|NoAutoSize" Size="x: 60px y: 20px" Position="x: 5px" Value="Export" />
+		<Label Flag="PABL|LATL" Style="MenuFnt" Value="Export With:" Position="y: -10px">
+			<Toggle Name="ExportDefaultTgl" Value="Default" Flag="PAMR|LAML|NoAutoSize" Size="x: 60px y: 20px" Position="x: 5px">
+				<Toggle Name="ExportNormalsTgl" Value="Normals" Flag="PAMR|LAML|NoAutoSize" Size="x: 60px y: 20px" Position="x: 5px">
+					<Toggle Name="ExportEmissionsTgl" Value="Emissions" Flag="PAMR|LAML|NoAutoSize" Size="x: 70px y: 20px" Position="x: 5px">
+						<Toggle Name="ExportAlbedoTgl" Value="Albedo" Flag="PAMR|LAML|NoAutoSize" Size="x: 60px y: 20px" Position="x: 5px">
+							<Toggle Name="ExportMetallicTgl" Value="Metallic" Flag="PAMR|LAML|NoAutoSize" Size="x: 60px y: 20px" Position="x: 5px" Tooltip="Metallic+Roughness" />
+						</Toggle>
+					</Toggle>
+				</Toggle>
+			</Toggle>
+			<Label Name="TexSizeLbl" Flag="PABL|LATL" Style="MenuFnt" Value="Texture Size: 0x0" Position="y: -10px">
+				<Label Flag="PAMR|LAML" Value="Packing:" Style="MenuFnt" Position="x: 10px">
+					<Toggle Name="LargestTileTgl" Value="Largest" Flag="PAMR|LAML|NoAutoSize" Size="x: 60px y: 20px" Position="x: 5px">
+						<Toggle Name="TightTilesTgl" Value="Tight" Flag="PAMR|LAML|NoAutoSize" Size="x: 50px y: 20px" Position="x: 5px">
+							<Label Flag="PAMR|LAML" Value="Meta-Data:" Position="x: 10px" Style="MenuFnt">
+								<Toggle Name="MetaCenterTgl" Value="Offset" Flag="PAMR|LAML|NoAutoSize" Size="x: 60px y: 20px" Position="x: 5px" Tooltip="Include offset to 0,0,0 from bottom left of texture for each tile.">
+									<!--<Toggle Name="MetaBonesTgl" Value="Bones" Flag="PAMR|LAML|NoAutoSize" Size="x: 60px y: 20px" Position="x: 5px" Tooltip="Include named bone offset's for attachments to each tile." >-->
+								</Toggle>
+							</Label>
+						</Toggle>
+					</Toggle>
+				</Label>
+			</Label>
+		</Label>
+	</BtnLbl>
+</Component>
+
+<Component Name="UIIsoProps">
+	<Label Flag="PATL|LATL" Style="MenuFnt" Value="Isometric Propertys" Position="x: 5px y: -5px">
+		<Label Flag="PABL|LATL" Style="MenuFnt" Value="Directions:" Position="y: -10px">
+			<TextInput Name="DirectionCntTI" Style="TISmallNbrStyle" Flag="PAMR|LAML" Size="x: 60px y: 20px" Position="x: 5px">
+				<Label Flag="PAMR|LAML" Style="MenuFnt" Value="Offset:" Position="x: 5px">
+					<TextInput Name="OffsetTI" Style="TISmallNbrStyle" Flag="PAMR|LAML" Size="x: 60px y: 20px" Position="x: 5px" />
+				</Label>
+			</TextInput>
+			<BtnLbl Name="MdlNextBtn" Flag="PABL|LATL|NoAutoSize" Position="x: 5px y: -10px" Size="x: 60px y: 20px" Value="Next">
+				<BtnLbl Name="MdlPrevBtn" Flag="PAMR|LAML|NoAutoSize" Position="x: 10px" Size="x: 60px y: 20px" Value="Prev" />
+			</BtnLbl>
+		</Label>
+	</Label>
+</Component>
+
+<Component Name="UIAnimationProps">
+	<Label Name="TimeLbl" Flag="PATL|LATL" Style="MenuFnt" Value="Time: 000.00/000.00" Position="x: 5px y: -5px">
+		<BtnLbl Name="PlayBtn" Flag="PAMR|LAML|NoAutoSize" Value="Play" Position="x: 5px" Size="x: 50px y: 18px">
+			<BtnLbl Name="RewindBtn" Flag="PAMR|LAML|NoAutoSize" Value="Rewind" Size="x: 60px y: 18px" Position="x: 5px">
+				<BtnLbl Name="NextFrameBtn" Flag="PAMR|LAML|NoAutoSize" Value="Next" Size="x: 50px y: 18px" Position="x: 5px">
+					<BtnLbl Name="PrevFrameBtn" Flag="PAMR|LAML|NoAutoSize" Value="Prev" Size="x: 50px y: 18px" Position="x: 5px" />
+				</BtnLbl>
+			</BtnLbl>
+		</BtnLbl>
+		<ScrollBar Name="TimeSB" Flag="PABL|LATL|HorizontalBar" Style="ScrollStyle" Position="y: -10px" Size="x: 140px y: 15px">
+			<Label Value="Frames:" Flag="PABL|LATL" Style="MenuFnt" Position="y: -10px">
+				<TextInput Name="FrameCntTI" Flag="PAMR|LAML" Style="TISmallNbrStyle" Size="x: 60px y: 20px" Position="x: 5px">
+					<Label Value="Offset:" Flag="PAMR|LAML" Style="MenuFnt" Position="x: 5px">
+						<TextInput Name="FrameOffsetTI" Flag="PAMR|LAML" Style="TISmallNbrStyle" Size="x: 60px y: 20px" Position="x: 5px" />
+					</Label>
+				</TextInput>
+			</Label>
+		</ScrollBar>
+	</Label>
+</Component>
+
+
+<Component Name="UIViewer">
+	<Rect Flag="PAMC|LAMC" Size="x: 100% y: 100%" Material="MenuBackground">
+		<Toggle Name="FileTgl" Flag="PATL|LABL|NoAutoSize" Value="File" Size="x: 60px y: 20px" Tooltip="Hotkey: Ctrl+1">
+			<Toggle Name="CameraTgl" Flag="PABR|LABL|NoAutoSize" Value="Camera" Size="x: 60px y: 20px" Position="x: 5px" Tooltip="Hotkey: Ctrl+2">
+				<Toggle Name="IsometricTgl" Flag="PABR|LABL|NoAutoSize" Value="Iso Props" Size="x: 70px y: 20px" Position="x: 5px" Tooltip="Hotkey: Ctrl+3">
+					<Toggle Name="AnimationTgl" Flag="PABR|LABL|NoAutoSize" Value="Animation" Size="x: 70px y: 20px" Position="x: 5px" Tooltip="Hotkey: Ctrl+4">
+						<Toggle Name="LightingTgl" Flag="PABR|LABL|NoAutoSize" Value="Lighting" Size="x: 60px y: 20px" Position="x: 5px" Tooltip="Hotkey: Ctrl+5" />
+					</Toggle>
+				</Toggle>
+			</Toggle>
+		</Toggle>
+		<UIFile Name="UIFile" Flag="PATL|LATL|NoAutoSize" Size="x: 100% y: 100%" />
+		<UICameraControl Name="UICameraControls" Flag="PATL|LATL|NoAutoSize" Size="x: 100% y: 100%" />
+		<UIIsoProps Name="UIIsoProps" Flag="PATL|LATL|NoAutoSize" Size="x: 100% y: 100%" />
+		<UIAnimationProps Name="UIAnimationProps" Flag="PATL|LATL|NoAutoSize" Size="x: 100% y: 100%" />
+		<UILightingProps Name="UILightingProps" Flag="PATL|LATL|NoAutoSize" Size="x: 100% y: 100%" />
+	</Rect>
+</Component>

@@ -1,0 +1,71 @@
+//Clouds Adapted from original source: https://www.shadertoy.com/view/4tdSWr
+#module Pixel OpenGL4_5
+#version 440
+#define USEGLOBALDATA
+#define USEPASSDATA
+#define USEMODELDATA
+#define USEGPIXELDATA
+#define USEGPIXELINPUT
+#define NOTRANSFORM
+#include "SharedFunctions.lws"
+#module Pixel DirectX11_1
+
+Texture2D SkyBackTex;
+Texture2D SkyHorizonTex;
+Texture2D SkyGlowTex;
+SamplerState SkyBackSmp;
+SamplerState SkyHorizonSmp;
+SamplerState SkyGlowSmp;
+
+float4 main(Pixel In) : SV_Target{
+	float3 Normal = normalize(In.TBN[2]);
+	float D = max(dot(Normal, SunDirection.xyz), 0.0f);
+	float S = (SunDirection.y+1.0f)*0.5f;
+	
+	float2 tHorizon = float2(S, 1.0f-Normal.y);
+	float4 kHorizon = SampleIf(SkyHorizonTex, SkyHorizonSmp, SBHorizonTexID, tHorizon, false);
+	
+	float2 tSunGlow = float2(S, 1.0f-D);
+	float4 kSunGlow = SampleIf(SkyGlowTex, SkyGlowSmp, SBGlowTexID, tSunGlow, false);
+	
+	float4 Back = SampleIf(SkyBackTex, SkyBackSmp, SBBackTexID, In, false);
+	return float4(kHorizon.rgb+kSunGlow.rgb*kSunGlow.a/2.0f, 1.0)*kHorizon.a + Back*(1.0f-kHorizon.a);
+}
+
+
+#module Pixel OpenGL3_2 OpenGL4_4
+#version 330
+layout(std140) uniform ModelData{
+	mat4 ModelMatrix;
+	vec4 SunDirection;
+	vec4 BackSubTex;
+	vec4 HorizonSubTex;
+	vec4 SunSubTex;
+};
+
+in vec4 pTPosition;
+in vec4 pNormal;
+in vec4 pColor;
+in vec4 pTexCoord;
+
+out vec4 oColor | 0 | Output;
+
+uniform sampler2D BackTex;
+uniform sampler2D HorizonTex;
+uniform sampler2D SunGlowTex;
+
+void main(void){
+	float D = max(dot(pTPosition, SunDirection), 0.0f);
+	float S = (SunDirection.y+1.0f)/2.0f;
+	
+	vec2 tHorizon = vec2(S, 1.0f-pTPosition.y);
+	vec4 kHorizon = texture2D(HorizonTex, HorizonSubTex.xy + tHorizon*HorizonSubTex.zw);
+	
+	vec2 tSunGlow = vec2(S, 1.0f-D);
+	vec4 kSunGlow = texture2D(SunGlowTex, SunSubTex.xy + tSunGlow*SunSubTex.zw);
+	
+	vec4 Back = texture2D(BackTex, pTexCoord.xy);
+	
+	oColor = vec4(kHorizon.rgb+kSunGlow.rgb*kSunGlow.a/2.0f, 1.0)*kHorizon.a + Back*(1.0f-kHorizon.a);
+	return;
+};

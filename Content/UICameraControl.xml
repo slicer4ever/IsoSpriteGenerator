@@ -1,0 +1,51 @@
+
+<Component Name="UIPerspectiveControls">
+	<Label Flag="PATL|LATL" Style="MenuFnt" Value="Field of View:">
+		<TextInput Name="FovTI" Flag="PAMR|LAML" Position="x: 5px" Style="TISmallNbrStyle" Size="x: 100px y: 20px" />
+	</Label>
+</Component>
+
+<Component Name="UIOrthoControls">
+	<Label Flag="PATL|LATL" Style="MenuFnt" Value="Width:">
+		<TextInput Name="WidthTI" Flag="PAMR|LAML" Position="x: 5px" Style="TISmallNbrStyle" Size="x: 100px y: 20px">
+			<Label Flag="PAMR|LAML" Position="x: 5px" Style="MenuFnt" Value="Height:">
+				<TextInput Name="HeightTI" Flag="PAMR|LAML" Position="x: 5px" Style="TISmallNbrStyle" Size="x: 100px y: 20px" />
+			</Label>
+		</TextInput> 
+	</Label>
+</Component>
+
+<Component Name="UICameraControl">
+	<Rect Size="x: 100% y: 100%" Material="MenuBackground">
+		<Label Flag="PATL|LATL" Position="y: -10px x:5px" Style="MenuFnt" Value="Type:">
+			<Toggle Name="PerspectiveTgl" Flag="PAMR|LAML|NoAutoSize" Position="x: 5px" Value="Perspective" Size="x: 80px y: 20px">
+				<Toggle Name="OrthoTgl" Flag="PAMR|LAML|NoAutoSize" Position="x: 5px" Value="Ortho" Size="x: 40px y: 20px">
+					<Label Flag="PAMR|LAML" Position="x: 15px" Style="MenuFnt" Value="Output:">
+						<Toggle Name="DefaultTgl" Flag="PAMR|LAML|NoAutoSize" Position="x: 5px" Value="Default" Size="x: 50px y: 20px">
+							<Toggle Name="EmissionTgl" Flag="PAMR|LAML|NoAutoSize" Position="x: 5px" Value="Emissions" Size="x: 65px y: 20px">
+								<Toggle Name="AlbedoTgl" Flag="PAMR|LAML|NoAutoSize" Position="x: 5px" Value="Albedo" Size="x: 50px y: 20px">
+									<Toggle Name="NormalTgl" Flag="PAMR|LAML|NoAutoSize" Position="x: 5px" Value="Normal" Size="x: 50px y: 20px">
+										<Toggle Name="MetallicTgl" Flag="PAMR|LAML|NoAutoSize" Position="x: 5px" Value="Metallic" Tooltip="Metallic+Roughness" Size="x: 60px y: 20px" />
+									</Toggle>
+								</Toggle>
+							</Toggle>
+						</Toggle>
+					</Label>
+				</Toggle>
+			</Toggle>
+			<Label Flag="PABL|LATL" Position="y: -10px" Style="MenuFnt" Value="Pitch:">
+				<TextInput Name="PitchTI" Flag="PAMR|LAML" Position="x: 5px" Style="TISmallNbrStyle" Size="x: 100px y: 20px">
+					<Label Flag="PAMR|LAML" Position="x: 5px" Style="MenuFnt" Value="Rotation:">
+						<TextInput Name="RotationTI" Flag="PAMR|LAML" Position="x: 5px" Style="TISmallNbrStyle" Size="x: 100px y: 20px">
+							<Label Flag="PAMR|LAML" Position="x: 5px" Style="MenuFnt" Value="Distance:">
+								<TextInput Name="DistanceTI" Flag="PAMR|LAML" Position="x: 5px" Style="TISmallNbrStyle" Size="x: 100px y: 20px" />
+							</Label>
+						</TextInput>
+					</Label>
+				</TextInput>
+				<UIPerspectiveControls Name="PerspectiveControls" Flag="PABL|LATL|NoAutoSize|Invisible" Position="y: -10px" />
+				<UIOrthoControls Name="OrthoControls" Flag="PABL|LATL|NoAutoSize|Invisible" Position="y: -10px" />
+			</Label>
+		</Label>
+	</Rect>
+</Component>

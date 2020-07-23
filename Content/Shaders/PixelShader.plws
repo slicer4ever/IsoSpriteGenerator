@@ -1,0 +1,119 @@
+#module Pixel OpenGL4_5
+#version 440 core
+#define USEGLOBALDATA
+#define USEPASSDATA
+#define USEMODELDATA
+#define USEGPIXELDATA
+#define USEGPIXELINPUT
+#define NOTRANSFORM
+#define USELIGHTINGDATA
+#include "SharedFunctions.lws"
+#include "LightingFunctions.plws"
+#include "ImageBasedLightining.plws"
+
+#ifdef METALLICROUGHNESS
+#include "PBRMetallicShader.plws"
+#elif SPECULARGLOSSINESS
+#include "SpecularGlossiness.plws"
+#elif UNLIT
+#include "PBRUnlit.plws"
+#endif
+
+#module Pixel DirectX11_1
+Texture2D NormalTex;
+Texture2D OcclussionTex;
+Texture2D EmissiveTex;
+
+SamplerState NormalSmp;
+SamplerState OcclussionSmp;
+SamplerState EmissiveSmp;
+
+oPixel main(Pixel In){
+	float2 SP = In.Position.xy;
+	uint2 Pos = uint2(uint(SP.x), uint(SP.y))/TileSize;
+	uint offset = (Pos.x+Pos.y*(ThreadDimensions.x*32))*MaxTileLights;
+	oPixel output;
+	output.Color = float4(0.0f, 0.0f, 0.0f, 1.0f);
+
+	float3 nViewDir = normalize((ViewPositions[PassIndex]-In.WPosition).xyz);
+	output.Emission = Material.EmissiveFactor * SampleIf(EmissiveTex, EmissiveSmp, EmissiveTexID, In, true);
+	output.Color = output.Emission;
+	float GlobalAtten = 1.0f-float(step(1, LightCount)); //If no lights in the scene than IBL is used entirely, otherwise the brightest light source on the surface dictates how much of IBL is used.
+	float AOcclusion = SampleIf(OcclussionTex, OcclussionSmp, OcclussionTexID, In, false).r;
+	float Alpha = In.Transparency;
+	float3 SurfaceNormal = normalize(In.TBN[2]);
+	float3 Normal = SampleIf(NormalTex, NormalSmp, NormalTexID, In, false, float4(0.5f, 0.5f, 1.0f, 0.5f)).xyz*2.0f-1.0f;
+	Normal = normalize(mul(Normal, In.TBN));
+	
+	PMaterial Mat = PrepareMaterial(In, output, Normal, nViewDir, Alpha);	
+	if(Alpha<0.01f) discard;
+	uint RType = RenderFlag&RenderTypeFlags;
+	if(RType!=RenderDefault){
+		if(RType==RenderEmissions) output.Color = ToneMap(output.Emission, Alpha);
+		else if(RType==RenderNormals) output.Color = float4(Normal*0.5f+0.5f, 1.0f);
+		output.Emission = float4(0.0f, 0.0f, 0.0f, 0.0f);
+		output.Color = RenderDebug(In, RType, output.Color, Alpha);
+		return output;
+	}
+
+	output.Emission = ToneMap(output.Emission, Alpha);
+#ifdef UNLIT
+	output.Color = ToneMap(output.Color, Alpha);
+	return output;
+#endif
+	[loop][fastopt]
+	for(uint i=0;i<LightCount;i++){
+	//for(uint i=offset;i<offset+MaxTileLights;i++){
+		//if(LightArray[i]>=LightCount) break;
+		Light L = Lights[i];
+		LightResults R = doLighting(L, AOcclusion, In.WPosition.xyz, SurfaceNormal, Normal, nViewDir, In.TPositions);
+		GlobalAtten = max(GlobalAtten, R.Att*R.NdotL); //if light is shadowed in the texel then IBL will respect the shadowing.
+		output.Color += ProcessLight(L, R, Mat);
+	}
+	if((RenderFlag&RenderWithIBL)!=0){
+		output.Color += ProcessIBL(Mat, Normal, nViewDir, GlobalAtten);
+	}
+	output.Color = ToneMap(output.Color, Alpha);
+
+	return output;
+}
+#module Pixel OpenGL4_5
+uniform sampler2D NormalTex;
+uniform sampler2D OcclussionTex;
+uniform sampler2D EmissiveTex;
+
+void main(void){
+	
+	vec2 SP = gl_FragCoord.xy;
+	uvec2 Pos = uvec2(uint(SP.x), ScreenSize.y-uint(SP.y))/TileSize;
+	uint offset = (Pos.x+Pos.y*(ThreadDimensions.x*32))*MaxTileLights;
+	vec3 nViewDir = normalize((ViewPositions[PassIndex]-p.WPosition).xyz);
+
+	pColor = vec4(0.0f, 0.0f, 0.0f, 1.0f);
+	pEmission = Material.EmissiveFactor * SampleIf(EmissiveTex, EmissiveTexID, true);
+	float GlobalAtten = 1.0f-float(step(1, LightCount));
+	float AOcclusion = SampleIf(OcclussionTex, OcclussionTexID, false).r;
+	float Alpha = p.Transparency;
+	vec3 SurfaceNormal = normalize(p.TBN[2]);
+	vec3 Normal = SampleIf(NormalTex, NormalTexID, false, vec4(0.5f, 0.5f, 1.0f, 0.5f)).xyz*2.0f-1.0f;
+	Normal = normalize(p.TBN*Normal);
+	
+	PMaterial Mat = PrepareMaterial(Alpha);
+	if(Alpha<0.01f) discard;
+#ifdef UNLIT
+	return;
+#endif
+	for(uint i=offset;i<offset+MaxTileLights;i++){
+		if(LightArrayD[i]>=LightCount) break;
+		Light L = LightsD[LightArrayD[i]];
+		LightResults R = doLighting(L, AOcclusion, p.WPosition.xyz, SurfaceNormal, Normal, nViewDir, p.TPositions);
+		GlobalAtten = max(GlobalAtten, R.Att*R.NdotL); //if light is shadowed in the texel then IBL will respect the shadowing.
+		pColor += ProcessLight(L, R, Mat);
+	}
+	
+	if((Material.HasTexturesFlag&DoIBLFlag)!=0){
+		pColor += ProcessIBL(Mat, Normal, nViewDir, GlobalAtten);
+	}
+	pColor = ToneMap(pColor, Alpha);
+	return;
+}
