@@ -95,7 +95,7 @@
       <AdditionalIncludeDirectories>../../../../Lightwave/Framework/Includes/C++11/;../../../../Lightwave/Engine/Includes/C++11/;../../../Includes/C++11/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>../../../../Lightwave/Framework/Binarys/$(Configuration)/$(PlatformTarget)/;../../../../Lightwave/Engine/Binarys/$(Configuration)/$(PlatformTarget)/;../../../../Lightwave/Dependency/Binarys/$(Configuration)/$(PlatformTarget)/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>LWCore.lib;LWPlatform.lib;LWVideo.lib;LWAudio.lib;LWNetwork.lib;LWEngine.lib;OpenGL32.lib;D3D11.lib;D3DCompiler.lib;dxguid.lib;SHcore.lib;libGLEW.lib;libFreetype.lib;libpng.lib;libz.lib;libogg.lib;libvorbis.lib;XInput.lib;libvpx.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -112,7 +112,7 @@
       <AdditionalIncludeDirectories>../../../../Lightwave/Framework/Includes/C++11/;../../../../Lightwave/Engine/Includes/C++11/;../../../Includes/C++11/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -129,7 +129,7 @@
       <AdditionalIncludeDirectories>../../../../Lightwave/Framework/Includes/C++11/;../../../../Lightwave/Engine/Includes/C++11/;../../../Includes/C++11/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>../../../../Lightwave/Framework/Binarys/$(Configuration)/$(PlatformTarget)/;../../../../Lightwave/Engine/Binarys/$(Configuration)/$(PlatformTarget)/;../../../../Lightwave/Dependency/Binarys/$(Configuration)/$(PlatformTarget)/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>LWCore.lib;LWPlatform.lib;LWVideo.lib;LWAudio.lib;LWNetwork.lib;LWEngine.lib;OpenGL32.lib;D3D11.lib;D3DCompiler.lib;dxguid.lib;SHcore.lib;libGLEW.lib;libFreetype.lib;libpng.lib;libz.lib;libogg.lib;libvorbis.lib;XInput.lib;libvpx.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -146,7 +146,7 @@
       <AdditionalIncludeDirectories>../../../../Lightwave/Framework/Includes/C++11/;../../../../Lightwave/Engine/Includes/C++11/;../../../Includes/C++11/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
