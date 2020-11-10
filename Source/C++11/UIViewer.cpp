@@ -60,19 +60,19 @@ void UIViewer::ToggleChanged(UIToggleGroup &Group, uint32_t Index, UIToggle &Tgl
 	return;
 }
 
-UIViewer::UIViewer(const StackText &Name, LWEUIManager *UIMan, App *A) : UIItem(Name, UIMan) {
-	new (&m_FileProps) UIFile(StackText("%s.UIFile", Name()), UIMan, this, A);
-	new (&m_CameraProps) UICameraControls(StackText("%s.UICameraControls", Name()), UIMan);
-	new (&m_IsometricProps) UIIsometricProps(StackText("%s.UIIsoProps", Name()), UIMan, this, A);
-	new (&m_AnimationProps) UIAnimationProps(StackText("%s.UIAnimationProps", Name()), UIMan, this, A);
-	new (&m_LightingProps) UILightingProps(StackText("%s.UILightingProps", Name()), UIMan, this, A);
+UIViewer::UIViewer(const LWUTF8Iterator &Name, LWEUIManager *UIMan, App *A) : UIItem(Name, UIMan) {
+	new (&m_FileProps) UIFile(LWUTF8I::Fmt<128>("{}.UIFile", Name), UIMan, this, A);
+	new (&m_CameraProps) UICameraControls(LWUTF8I::Fmt<128>("{}.UICameraControls", Name), UIMan);
+	new (&m_IsometricProps) UIIsometricProps(LWUTF8I::Fmt<128>("{}.UIIsoProps", Name), UIMan, this, A);
+	new (&m_AnimationProps) UIAnimationProps(LWUTF8I::Fmt<128>("{}.UIAnimationProps", Name), UIMan, this, A);
+	new (&m_LightingProps) UILightingProps(LWUTF8I::Fmt<128>("{}.UILightingProps", Name), UIMan, this, A);
 
 	UIToggleGroup::MakeMethod(m_ToggleList, UIToggleGroup::AlwaysOneActive, &UIViewer::ToggleChanged, this, A);
-	m_ToggleList.PushToggle(StackText("%s.FileTgl", Name()), UIMan);
-	m_ToggleList.PushToggle(StackText("%s.CameraTgl", Name()), UIMan);
-	m_ToggleList.PushToggle(StackText("%s.IsometricTgl", Name()), UIMan);
-	m_ToggleList.PushToggle(StackText("%s.AnimationTgl", Name()), UIMan);
-	m_ToggleList.PushToggle(StackText("%s.LightingTgl", Name()), UIMan);
+	m_ToggleList.PushToggle(LWUTF8I::Fmt<128>("{}.FileTgl", Name), UIMan);
+	m_ToggleList.PushToggle(LWUTF8I::Fmt<128>("{}.CameraTgl", Name), UIMan);
+	m_ToggleList.PushToggle(LWUTF8I::Fmt<128>("{}.IsometricTgl", Name), UIMan);
+	m_ToggleList.PushToggle(LWUTF8I::Fmt<128>("{}.AnimationTgl", Name), UIMan);
+	m_ToggleList.PushToggle(LWUTF8I::Fmt<128>("{}.LightingTgl", Name), UIMan);
 	m_ToggleList.SetToggled(0, true);
 	m_FileProps.SetVisible(true);
 }

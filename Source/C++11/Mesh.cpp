@@ -13,6 +13,16 @@
 
 //Primitive
 
+//BoneW
+LWUTF8Iterator Bone::GetName(void) const {
+	return m_Name;
+}
+
+Bone::Bone(const LWUTF8Iterator &Name, const LWSMatrix4f &InvBindMatrix, const LWSMatrix4f &Transform) : m_InvBindMatrix(InvBindMatrix), m_Transform(Transform) {
+	Name.Copy(m_Name, sizeof(m_Name));
+	m_NameHash = GetName().Hash();
+}
+
 //MeshGeometry
 
 bool MeshGeometry::UploadData(Renderer *R, LWAllocator &Allocator, bool CopyOut) {
@@ -48,10 +58,10 @@ Mesh &Mesh::MakeGLTFMesh(LWEGLTFParser &P, LWEGLTFNode *Source, LWEGLTFMesh *Mes
 	char *Verts = nullptr;
 	char *Idxs = nullptr;
 	if (TotalVertices) {
-		if (VerticeSize == sizeof(GStaticVertice)) Verts = (char*)Allocator.AllocateArray<GStaticVertice>(TotalVertices);
-		else Verts = (char*)Allocator.AllocateArray<GSkeletonVertice>(TotalVertices);
+		if (VerticeSize == sizeof(GStaticVertice)) Verts = (char*)Allocator.AllocateA<GStaticVertice>(TotalVertices);
+		else Verts = (char*)Allocator.AllocateA<GSkeletonVertice>(TotalVertices);
 	}
-	if (TotalIndices) Idxs = Allocator.AllocateArray<char>(IndiceSize*TotalIndices);
+	if (TotalIndices) Idxs = Allocator.AllocateA<char>(IndiceSize*TotalIndices);
 	uint32_t v = 0;
 	uint32_t o = 0;
 	for (auto &&Prim : Mesh->m_Primitives) {
@@ -80,7 +90,7 @@ Mesh &Mesh::MakeGLTFMesh(LWEGLTFParser &P, LWEGLTFNode *Source, LWEGLTFMesh *Mes
 		if (P.CreateAccessorView(Tangent, Prim.FindAttributeAccessor(LWEGLTFAttribute::TANGENT))) {
 			Tangent.ReadValues<float>((float*)(V + offsetof(GSkeletonVertice, m_Tangent)), VerticeSize, Tangent.m_Count);
 		} else {
-			LogWarnf("Model has no tangents, attempting to generate them.");
+			LogWarn("Model has no tangents, attempting to generate them.");
 			for (uint32_t i = 0; i < VertCnt; i++) {
 				GStaticVertice *Vt = (GStaticVertice*)(V + (VerticeSize*i));
 				LWVector3f R;
@@ -120,7 +130,7 @@ Mesh &Mesh::MakeGLTFMesh(LWEGLTFParser &P, LWEGLTFNode *Source, LWEGLTFMesh *Mes
 
 Mesh &Mesh::MakeGLTFSkin(LWEGLTFParser &P, LWEGLTFNode *Source, LWEGLTFSkin *Skin, LWAllocator &Allocator) {
 	if (!Skin->m_JointList.size()) return *this;
-	if (Skin->m_JointList.size() > MaxBones) LogWarnf("Error importing model with more bones than supported: %d (%d)", (uint32_t)Skin->m_JointList.size(), MaxBones);
+	if (Skin->m_JointList.size() > MaxBones) LogWarn(LWUTF8I::Fmt<128>("Error importing model with more bones than supported: {} ({})", (uint32_t)Skin->m_JointList.size(), MaxBones));
 	LWMatrix4f InvBindMatrixs[MaxBones];
 	m_BoneCount = std::min<uint32_t>((uint32_t)Skin->m_JointList.size(), MaxBones);
 	LWEGLTFAccessorView InvBindView;
@@ -137,12 +147,7 @@ Mesh &Mesh::MakeGLTFSkin(LWEGLTFParser &P, LWEGLTFNode *Source, LWEGLTFSkin *Ski
 
 	std::function<void(LWEGLTFNode *, LWEGLTFSkin*)> ParseJointNode = [this, &P, &InvBindMatrixs, &ParseJointNode, &MapIDToList](LWEGLTFNode *N, LWEGLTFSkin *Skin) {
 		uint32_t ID = MapIDToList(Skin->m_JointList, N->m_NodeID);
-		if (!*N->m_Name) snprintf(N->m_Name, sizeof(N->m_Name), "Bone_%d", ID);
-		*m_BoneList[ID].m_Name = '\0';
-		strncat(m_BoneList[ID].m_Name, N->m_Name, sizeof(m_BoneList[ID].m_Name));
-		m_BoneList[ID].m_NameHash = LWText::MakeHash(m_BoneList[ID].m_Name);
-		m_BoneList[ID].m_InvBindMatrix = LWSMatrix4f(InvBindMatrixs[ID]);
-		m_BoneList[ID].m_Transform = LWSMatrix4f(N->m_TransformMatrix);
+		m_BoneList[ID] = Bone(N->GetName(), InvBindMatrixs[ID], N->m_TransformMatrix);
 		uint32_t pID = -1;
 		for (auto &&Iter : N->m_Children) {
 			uint32_t cID = MapIDToList(Skin->m_JointList, Iter);
@@ -334,8 +339,8 @@ uint32_t Mesh::FindBone(uint32_t NameHash) const {
 	return -1;
 }
 
-uint32_t Mesh::FindBone(const char *Name) const {
-	return FindBone(LWText::MakeHash(Name));
+uint32_t Mesh::FindBone(const LWUTF8Iterator &Name) const {
+	return FindBone(Name.Hash());
 }
 
 uint32_t Mesh::GetBoneCount(void) const {

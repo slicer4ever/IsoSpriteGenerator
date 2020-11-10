@@ -110,9 +110,6 @@
     <ClInclude Include="..\..\..\Includes\C++11\UIToolkit.h">
       <Filter>Header Files\UI</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\Includes\C++11\StackText.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\Includes\C++11\UICameraControls.h">
       <Filter>Header Files\UI</Filter>
     </ClInclude>
@@ -133,6 +130,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Includes\C++11\UILightingProps.h">
       <Filter>Header Files\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Includes\C++11\Logger.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

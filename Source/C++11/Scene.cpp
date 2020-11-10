@@ -12,11 +12,11 @@ Node::Node(LWEGLTFParser &P, LWEGLTFNode &N, Renderer *R, LWAllocator &Allocator
 	if (N.m_MeshID != -1) GMsh = P.GetMesh(N.m_MeshID);
 	if (N.m_SkinID != -1) GSkn = P.GetSkin(N.m_SkinID);
 	if (GMsh) {
-		m_Mesh = Allocator.Allocate<Mesh>();
+		m_Mesh = Allocator.Create<Mesh>();
 		m_Mesh->MakeGLTFMesh(P, &N, GMsh, Allocator);
 		if (GSkn) {
 			m_Mesh->MakeGLTFSkin(P, &N, GSkn, Allocator);
-			m_Animation = Allocator.Allocate<Animation>();
+			m_Animation = Allocator.Create<Animation>();
 			m_Animation->MakeGLTFSkin(P, GSkn);
 		}
 		
@@ -37,7 +37,7 @@ Node::~Node() {
 }
 
 //Scene
-bool Scene::LoadGLTFFile(Scene &S, const LWText &Path, Renderer *R, LWAllocator &Allocator) {
+bool Scene::LoadGLTFFile(Scene &S, const LWUTF8Iterator &Path, Renderer *R, LWAllocator &Allocator) {
 	LWEGLTFParser P;
 
 	std::vector<uint32_t> NodeList;
@@ -48,7 +48,7 @@ bool Scene::LoadGLTFFile(Scene &S, const LWText &Path, Renderer *R, LWAllocator 
 	std::vector<uint32_t> TextureList;
 	std::vector<uint32_t> ImageList;
 	if (!LWEGLTFParser::LoadFile(P, Path, Allocator)) {
-		LogCriticalf("Error: failed to load file: '%s'", Path);
+		LogCritical(LWUTF8I::Fmt<256>("Error: failed to load file: '{}'", Path));
 		return false;
 	}
 
@@ -80,14 +80,14 @@ bool Scene::LoadGLTFFile(Scene &S, const LWText &Path, Renderer *R, LWAllocator 
 
 	LWEGLTFScene *GS = P.BuildSceneOnlyList(P.GetDefaultSceneID(), NodeList, MeshList, SkinList, LightList, MaterialList, TextureList, ImageList);
 	if (!GS) {
-		LogCriticalf("Error: No default scene provided.");
+		LogCritical("Error: No default scene provided.");
 		return false;
 	}
 
 	for (uint32_t i = 0; i < ImageList.size(); i++) {
-		LWImage *Img = Allocator.Allocate<LWImage>();
+		LWImage *Img = Allocator.Create<LWImage>();
 		if (!P.LoadImage(*Img, ImageList[i], Allocator)) {
-			LogCriticalf("Error: Failed to load image '%s'.", P.GetImage(ImageList[i])->m_Name);
+			LogCritical(LWUTF8I::Fmt<256>("Error: Failed to load image '{}'.", P.GetImage(ImageList[i])->GetName()));
 			LWAllocator::Destroy(Img);
 		} else {
 			S.PushImageTexID(R->PushPendingTexture(0, Img));

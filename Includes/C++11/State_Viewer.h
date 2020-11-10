@@ -6,9 +6,9 @@
 
 class State_Viewer : public State {
 public:
-	//PathNames appened to exports.
-	static const char *RenderPathNames[];
-	static const char *SettingPath;
+	//PathNames appended to exports.
+	static const char8_t *RenderPathNames[];
+	static const char8_t *SettingPath;
 
 	void Update(float dTime, App *A, uint64_t lCurrentTime);
 
@@ -27,17 +27,17 @@ public:
 
 	void SetTime(float Time);
 
-	bool LoadScene(const char *Path, App *A);
+	bool LoadScene(const LWUTF8Iterator &Path, App *A);
 
-	bool LoadSettings(const char *Path, App *A);
+	bool LoadSettings(const LWUTF8Iterator &Path, App *A);
 
-	bool SaveSettings(const char *Path, App *A);
+	bool SaveSettings(const LWUTF8Iterator &Path, App *A);
 
 	bool FinalizeExport(Renderer *R, App *A);
 
-	bool ExportMetaData(const char *ExportPathNoExt, App *A);
+	bool ExportMetaData(const LWUTF8Iterator &ExportPathNoExt, App *A);
 
-	bool Export(const char *ExportPath);
+	bool Export(const LWUTF8Iterator &ExportPath);
 
 	void SetModelTheta(float Theta);
 
@@ -53,7 +53,7 @@ public:
 
 	~State_Viewer();
 private:
-	char m_ExportPath[256];
+	char8_t m_ExportPath[256];
 	UIViewer m_UIViewer;
 	Scene *m_ViewScene = nullptr;
 	Scene *m_OldScene = nullptr;

@@ -25,7 +25,7 @@ struct UILightSunProps : public UIItem {
 
 	Light MakeLightSource(void);
 
-	UILightSunProps(const StackText &Name, LWEUIManager *UIMan, App *A);
+	UILightSunProps(const LWUTF8Iterator &Name, LWEUIManager *UIMan, App *A);
 
 	UILightSunProps() = default;
 
@@ -54,15 +54,15 @@ struct UILightIBLProps : public UIItem {
 	void OpenSpecularBtnReleased(LWEUI *UI, uint32_t EventCode, void *UserData);
 
 	//Returns the texture ID.
-	uint32_t LoadImage(char *PathBuffer, uint32_t PathBufferSize, App *A);
+	uint32_t LoadImage(char8_t *PathBuffer, uint32_t PathBufferSize, App *A);
 
-	UILightIBLProps(const StackText &Name, LWEUIManager *UIMan, App *A);
+	UILightIBLProps(const LWUTF8Iterator &Name, LWEUIManager *UIMan, App *A);
 
 	UILightIBLProps() = default;
 
-	char m_brdfPath[256]="";
-	char m_DiffusePath[256]="";
-	char m_SpecularPath[256]="";
+	char8_t m_brdfPath[256]="";
+	char8_t m_DiffusePath[256]="";
+	char8_t m_SpecularPath[256]="";
 	UILabelBtn m_OpenbrdfBtn;
 	UILabelBtn m_OpenDiffuseBtn;
 	UILabelBtn m_OpenSpecularBtn;
@@ -93,7 +93,7 @@ struct UILightingProps : public UIItem {
 
 	bool isUsingIBL(void);
 
-	UILightingProps(const StackText &Name, LWEUIManager *UIMan, UIViewer *Viewer, App *A);
+	UILightingProps(const LWUTF8Iterator &Name, LWEUIManager *UIMan, UIViewer *Viewer, App *A);
 
 	UILightingProps() = default;
 

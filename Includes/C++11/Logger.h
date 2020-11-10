@@ -20,16 +20,10 @@ struct DataAggregate {
 
 void SetLogLevel(uint32_t Level);
 
-void LogEvent(const char *Text);
+void LogEvent(const LWUTF8Iterator &Text);
 
-void LogWarn(const char *Text);
+void LogWarn(const LWUTF8Iterator &Text);
 
-void LogCritical(const char *Text);
-
-void LogEventf(const char *Fmt, ...);
-
-void LogWarnf(const char *Fmt, ...);
-
-void LogCriticalf(const char *Fmt, ...);
+void LogCritical(const LWUTF8Iterator &Text);
 
 #endif

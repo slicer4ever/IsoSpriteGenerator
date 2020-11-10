@@ -31,7 +31,7 @@ void UIFile::Update(float dTime, LWEUIManager *UIMan, App *A) {
 		m_TexSize = CalculateSpriteLocations(Wnd->GetSizef(), A, m_SpriteList);
 		m_NextUpdateTime += UpdateFreq;
 	}
-	m_TextureSizeLbl->SetTextf("Texture Size: %dx%d", m_TexSize.x, m_TexSize.y);
+	m_TextureSizeLbl->SetText(LWUTF8I::Fmt<64>("Texture Size: {}x{}", m_TexSize.x, m_TexSize.y));
 	return;
 }
 
@@ -78,16 +78,16 @@ void UIFile::DeserializeSettings(LWEJson &J, LWEJObject *Parent, App *A) {
 }
 
 void UIFile::SelectFileBtnReleased(LWEUI *UI, uint32_t EventCode, void *UserData) {
-	char Buffer[256];
+	char8_t Buffer[256];
 	App *A = (App*)UserData;
 	State_Viewer *SV = A->GetState<State_Viewer>(State::Viewer);
-	if (!LWWindow::MakeLoadFileDialog("*.gltf\0GLTF File\0*.glb\0GLB File\0\0", Buffer, sizeof(Buffer))) return;
+	if (!LWWindow::MakeLoadFileDialog("*.gltf:GLTF File:*.glb:GLB File", Buffer, sizeof(Buffer))) return;
 	SV->LoadScene(Buffer, A);
 	return;
 }
 
 void UIFile::ExportFileBtnReleased(LWEUI *UI, uint32_t EventCode, void *UserData) {
-	char Buffer[256];
+	char8_t Buffer[256];
 	App *A = (App*)UserData;
 	State_Viewer *SV = A->GetState<State_Viewer>(State::Viewer);
 	if (!SV->GetScene()) {
@@ -98,7 +98,7 @@ void UIFile::ExportFileBtnReleased(LWEUI *UI, uint32_t EventCode, void *UserData
 		A->SetMessage("No export setting selected.");
 		return;
 	}
-	if (!LWWindow::MakeSaveFileDialog("*.png\0PNG File\0\0", Buffer, sizeof(Buffer))) return;
+	if (!LWWindow::MakeSaveFileDialog("*.png:PNG File", Buffer, sizeof(Buffer))) return;
 	SV->Export(Buffer);
 	return;
 }
@@ -216,26 +216,26 @@ void UIFile::MetaDataTglChanged(UIToggleGroup &TglGroup, uint32_t ToggleID, UITo
 	return;
 }
 
-UIFile::UIFile(const StackText &Name, LWEUIManager *UIMan, UIViewer *Viewer, App *A) : UIItem(Name, UIMan), m_Viewer(Viewer) {
-	UILabelBtn::MakeMethod(m_SelectFileBtn, StackText("%s.SelectFileBtn", Name()), UIMan, &UIFile::SelectFileBtnReleased, this, A);
-	UILabelBtn::MakeMethod(m_ExportFileBtn, StackText("%s.ExportBtn", Name()), UIMan, &UIFile::ExportFileBtnReleased, this, A);
+UIFile::UIFile(const LWUTF8Iterator &Name, LWEUIManager *UIMan, UIViewer *Viewer, App *A) : UIItem(Name, UIMan), m_Viewer(Viewer) {
+	UILabelBtn::MakeMethod(m_SelectFileBtn, LWUTF8I::Fmt<128>("{}.SelectFileBtn", Name), UIMan, &UIFile::SelectFileBtnReleased, this, A);
+	UILabelBtn::MakeMethod(m_ExportFileBtn, LWUTF8I::Fmt<128>("{}.ExportBtn", Name), UIMan, &UIFile::ExportFileBtnReleased, this, A);
 
-	m_TextureSizeLbl = (LWEUILabel *)UIMan->GetNamedUIf("%s.TexSizeLbl", Name());
+	m_TextureSizeLbl = (LWEUILabel *)UIMan->GetNamedUI(LWUTF8I::Fmt<128>("{}.TexSizeLbl", Name));
 
 	UIToggleGroup::MakeMethod(m_ExportTgls, UIToggleGroup::AllowMultipleToggles, &UIFile::ExportsTglChanged, this, A);
-	m_ExportTgls.PushToggle(StackText("%s.ExportDefaultTgl", Name()), UIMan);
-	m_ExportTgls.PushToggle(StackText("%s.ExportEmissionsTgl", Name()), UIMan);
-	m_ExportTgls.PushToggle(StackText("%s.ExportNormalsTgl", Name()), UIMan);
-	m_ExportTgls.PushToggle(StackText("%s.ExportAlbedoTgl", Name()), UIMan);
-	m_ExportTgls.PushToggle(StackText("%s.ExportMetallicTgl", Name()), UIMan);
+	m_ExportTgls.PushToggle(LWUTF8I::Fmt<128>("{}.ExportDefaultTgl", Name), UIMan);
+	m_ExportTgls.PushToggle(LWUTF8I::Fmt<128>("{}.ExportEmissionsTgl", Name), UIMan);
+	m_ExportTgls.PushToggle(LWUTF8I::Fmt<128>("{}.ExportNormalsTgl", Name), UIMan);
+	m_ExportTgls.PushToggle(LWUTF8I::Fmt<128>("{}.ExportAlbedoTgl", Name), UIMan);
+	m_ExportTgls.PushToggle(LWUTF8I::Fmt<128>("{}.ExportMetallicTgl", Name), UIMan);
 	m_ExportTgls.SetToggled(0, true);
 
 	UIToggleGroup::MakeMethod(m_PackingTgls, UIToggleGroup::AlwaysOneActive, &UIFile::PackingTglChanged, this, A);
-	m_PackingTgls.PushToggle(StackText("%s.LargestTileTgl", Name()), UIMan);
-	m_PackingTgls.PushToggle(StackText("%s.TightTilesTgl", Name()), UIMan);
+	m_PackingTgls.PushToggle(LWUTF8I::Fmt<128>("{}.LargestTileTgl", Name), UIMan);
+	m_PackingTgls.PushToggle(LWUTF8I::Fmt<128>("{}.TightTilesTgl", Name), UIMan);
 
 	UIToggleGroup::MakeMethod(m_MetaDataTgls, UIToggleGroup::AllowMultipleToggles, &UIFile::MetaDataTglChanged, this, A);
-	m_MetaDataTgls.PushToggle(StackText("%s.MetaCenterTgl", Name()), UIMan);
+	m_MetaDataTgls.PushToggle(LWUTF8I::Fmt<128>("{}.MetaCenterTgl", Name), UIMan);
 	//m_MetaDataTgls.PushToggle(StackText("%s.MetaBonesTgl", Name()), UIMan);
 	m_MetaDataTgls.SetToggled(0, true);
 

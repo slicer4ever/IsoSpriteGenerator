@@ -137,13 +137,13 @@ Material &Material::MakeGLTFMaterial(LWEGLTFParser &P, LWEGLTFMaterial *Mat) {
 		MaterialTexture &MT = m_TextureList[TexID];
 		MakeFlatTexture(TexID, LWVector4f(TexInfo.m_Offset, TexInfo.m_Scale));
 		MT.m_TextureID = TexInfo.m_TextureIndex;
-		MT.m_TextureName = LWText::MakeHash(I->m_Name);
+		MT.m_TextureName = I->GetName().Hash();
 		MT.m_TextureState = T->m_SamplerFlag;
 	};
 	uint32_t MatType = Mat->GetType();
 	LWEGLTFMatMetallicRoughness &MR = Mat->m_MetallicRoughness;
 	LWEGLTFMatSpecularGlossyness &SG = Mat->m_SpecularGlossy;
-	m_NameHash = LWText::MakeHash(Mat->m_Name);
+	m_NameHash = Mat->GetName().Hash();
 	ApplyTexture(Mat->m_NormalMapTexture, NormalTexID);
 	ApplyTexture(Mat->m_OcclussionTexture, OcclussionTexID);
 	ApplyTexture(Mat->m_EmissiveTexture, EmissiveTexID);

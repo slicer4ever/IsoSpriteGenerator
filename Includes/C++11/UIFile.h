@@ -68,7 +68,7 @@ struct UIFile : public UIItem {
 
 	void MetaDataTglChanged(UIToggleGroup &TglGroup, uint32_t ToggleID, UIToggle &Toggle, bool Toggled, void *UserData);
 
-	UIFile(const StackText &Name, LWEUIManager *UIMan, UIViewer *Viewer, App *A);
+	UIFile(const LWUTF8Iterator &Name, LWEUIManager *UIMan, UIViewer *Viewer, App *A);
 
 	UIFile() = default;
 

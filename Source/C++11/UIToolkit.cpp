@@ -14,14 +14,14 @@ bool UIItem::isVisible(void) {
 	return m_UI->isVisible();
 }
 
-UIItem::UIItem(const StackText &Name, LWEUIManager *UIManager) {
-	m_UI = UIManager->GetNamedUI(Name());
+UIItem::UIItem(const LWUTF8Iterator &Name, LWEUIManager *UIManager) {
+	m_UI = UIManager->GetNamedUI(Name);
 }
 
 //UILabelBtn
-UILabelBtn::UILabelBtn(const StackText &Name, LWEUIManager *UIManager, LWEUIEventCallback ButtonReleasedFunc, void *UserData) : UIItem(Name, UIManager) {
-	m_Label = (LWEUILabel *)UIManager->GetNamedUIf("%s.Label", Name());
-	m_Button = (LWEUIButton *)UIManager->GetNamedUIf("%s.Button", Name());
+UILabelBtn::UILabelBtn(const LWUTF8Iterator &Name, LWEUIManager *UIManager, LWEUIEventCallback ButtonReleasedFunc, void *UserData) : UIItem(Name, UIManager) {
+	m_Label = (LWEUILabel *)UIManager->GetNamedUI(LWUTF8I::Fmt<128>("{}.Label", Name));
+	m_Button = (LWEUIButton *)UIManager->GetNamedUI(LWUTF8I::Fmt<128>("{}.Button", Name));
 	if (ButtonReleasedFunc) UIManager->RegisterEvent(m_Button, LWEUI::Event_Released, ButtonReleasedFunc, UserData);
 }
 
@@ -52,11 +52,11 @@ bool UIToggle::isLocked(void) const {
 	return m_ToggleLockedUI->isVisible();
 }
 
-UIToggle::UIToggle(const StackText &Name, LWEUIManager *UIMan, UIToggleCallback Callback, void *UserData) : UIItem(Name, UIMan), m_Callback(Callback) {
-	m_ToggleUI = UIMan->GetNamedUIf("%s.ToggleUI", Name());
-	m_ToggleLockedUI = UIMan->GetNamedUIf("%s.LockedUI", Name());
-	m_Label = (LWEUILabel *)UIMan->GetNamedUIf("%s.Label", Name());
-	m_Button = (LWEUIButton*)UIMan->GetNamedUIf("%s.Button", Name());
+UIToggle::UIToggle(const LWUTF8Iterator &Name, LWEUIManager *UIMan, UIToggleCallback Callback, void *UserData) : UIItem(Name, UIMan), m_Callback(Callback) {
+	m_ToggleUI = UIMan->GetNamedUI(LWUTF8I::Fmt<128>("{}.ToggleUI", Name));
+	m_ToggleLockedUI = UIMan->GetNamedUI(LWUTF8I::Fmt<128>("{}.LockedUI", Name));
+	m_Label = (LWEUILabel *)UIMan->GetNamedUI(LWUTF8I::Fmt<128>("{}.Label", Name));
+	m_Button = (LWEUIButton*)UIMan->GetNamedUI(LWUTF8I::Fmt<128>("{}.Button", Name));
 
 	UIMan->RegisterMethodEvent(m_Button, LWEUI::Event_Released, &UIToggle::ToggleBtnReleased, this, UserData);
 }
@@ -89,12 +89,12 @@ void UIListDialog::ListBoxVisible(LWEUI *UI, uint32_t EventCode, void *UserData)
 	m_ListSB->SetVisible(m_ListSB->GetScrollSize() < m_ListSB->GetMaxScroll());
 }
 
-bool UIListDialog::PushItem(const StackText &Value, void *UserData) {
+bool UIListDialog::PushItem(const LWUTF8Iterator &Value, void *UserData) {
 	const LWETextLine *Line = m_SearchTI->GetLine(0);
-	if (Line->m_CharLength) {
-		if (!LWText::Compare(Value(), Line->m_Value, Line->m_RawLength)) return false;
+	if (Line->m_Length) {
+		if(Value.Compare(Line->GetValue())) return false;
 	}
-	m_ListBox->PushItem(Value(), UserData);
+	m_ListBox->PushItem(Value, UserData);
 	m_ListSB->SetMaxScroll(m_ListBox->GetScrollMaxSize(m_UIManager->GetScale()));
 	m_ListSB->SetScrollSize(m_ListBox->GetScrollPageSize());
 	m_ListSB->SetVisible(m_ListSB->GetScrollSize() < m_ListSB->GetMaxScroll());
@@ -117,10 +117,10 @@ void UIListDialog::Populate(void) {
 	return;
 }
 
-UIListDialog::UIListDialog(const StackText &Name, LWEUIManager *UIMan, UISearchPopulateCallback PopulateCB, UISearchSelectedCallback SelectedCB, void *UserData) : UIItem(Name, UIMan), m_UIManager(UIMan), m_UserData(UserData), m_PopulateFunc(PopulateCB), m_SelectedFunc(SelectedCB) {
-	m_ListSB = (LWEUIScrollBar *)UIMan->GetNamedUIf("%s.ListSB", Name());
-	m_SearchTI = (LWEUITextInput *)UIMan->GetNamedUIf("%s.SearchTI", Name());
-	m_ListBox = (LWEUIListBox *)UIMan->GetNamedUIf("%s.List", Name());
+UIListDialog::UIListDialog(const LWUTF8Iterator &Name, LWEUIManager *UIMan, UISearchPopulateCallback PopulateCB, UISearchSelectedCallback SelectedCB, void *UserData) : UIItem(Name, UIMan), m_UIManager(UIMan), m_UserData(UserData), m_PopulateFunc(PopulateCB), m_SelectedFunc(SelectedCB) {
+	m_ListSB = (LWEUIScrollBar *)UIMan->GetNamedUI(LWUTF8I::Fmt<128>("{}.ListSB", Name));
+	m_SearchTI = (LWEUITextInput *)UIMan->GetNamedUI(LWUTF8I::Fmt<128>("{}.SearchTI", Name));
+	m_ListBox = (LWEUIListBox *)UIMan->GetNamedUI(LWUTF8I::Fmt<128>("{}.List", Name));
 
 	UIMan->RegisterMethodEvent(m_ListSB, LWEUI::Event_Changed, &UIListDialog::ScrollChanged, this, UserData);
 	UIMan->RegisterMethodEvent(m_ListBox, LWEUI::Event_Changed, &UIListDialog::ScrollChanged, this, UserData);
@@ -159,7 +159,7 @@ void UIToggleGroup::ToggleChanged(UIToggle &T, bool Active, void *UserData) {
 	return;
 }
 
-bool UIToggleGroup::PushToggle(const StackText &Name, LWEUIManager *UIMan) {
+bool UIToggleGroup::PushToggle(const LWUTF8Iterator &Name, LWEUIManager *UIMan) {
 	if (m_ToggleCount >= MaxToggles) return false;
 	bool MustHaveOne = (m_Flag&AlwaysOneActive) != 0;
 	UIToggle::MakeMethod(m_ToggleGroup[m_ToggleCount], Name, UIMan, &UIToggleGroup::ToggleChanged, this, m_UserData);

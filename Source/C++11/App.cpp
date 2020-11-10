@@ -57,24 +57,23 @@ void App::Run(void) {
 	return;
 }
 
-void App::SetMessage(const StackText &Message) {
-	LogEvent(Message());
-	m_MessageLbl->SetText(Message());
+void App::SetMessage(const LWUTF8Iterator &Message) {
+	LogEvent(Message);
+	m_MessageLbl->SetText(Message);
 	m_MessageTime = LWTimer::GetCurrent() + LWTimer::GetResolution() * MessageFreq;
 	return;
 }
 
-bool App::LoadAssets(const LWText &FilePath, const LWVideoMode &CurrMode) {
+bool App::LoadAssets(const LWUTF8Iterator &FilePath, const LWVideoMode &CurrMode) {
 	LWEXML X;
 	if (!LWEXML::LoadFile(X, m_Allocator, FilePath, true)) {
-		LogCriticalf("Error with file: '%s'", FilePath.GetCharacters());
+		LogCritical(LWUTF8I::Fmt<256>("Error with file: '{}'", FilePath));
 		return false;
 	}
 	LWEAssetManager *oAssetManager = m_AssetManager;
 	LWEUIManager *oUIManager = m_UIManager;
-	m_AssetManager = m_Allocator.Allocate<LWEAssetManager>(m_Driver, nullptr, m_Allocator);
-	m_UIManager = m_Allocator.Allocate<LWEUIManager>(m_Window, CurrMode.GetDPI().x, &m_Allocator, nullptr, m_AssetManager);
-
+	m_AssetManager = m_Allocator.Create<LWEAssetManager>(m_Driver, nullptr, m_Allocator);
+	m_UIManager = m_Allocator.Create<LWEUIManager>(m_Window, CurrMode.GetDPI().x, m_Allocator, nullptr, m_AssetManager);
 	X.PushParser("AssetManager", &LWEAssetManager::XMLParser, m_AssetManager);
 	X.PushParser("UIManager", &LWEUIManager::XMLParser, m_UIManager);
 	X.Process();
@@ -130,7 +129,7 @@ App::App(LWAllocator &Allocator) : m_Allocator(Allocator) {
 	LWVideoMode CurrMode = LWVideoMode::GetActiveMode();
 	LWVector2i TargetSize = LWVector2i(1280, 720);
 
-	m_Window = m_Allocator.Allocate<LWWindow>("IsoSpriteGenerator", "ISG", m_Allocator, LWWindow::WindowedMode | LWWindow::KeyboardDevice | LWWindow::MouseDevice, CurrMode.GetSize() / 2 - TargetSize / 2, TargetSize);
+	m_Window = m_Allocator.Create<LWWindow>("IsoSpriteGenerator", "ISG", m_Allocator, LWWindow::WindowedMode | LWWindow::KeyboardDevice | LWWindow::MouseDevice, CurrMode.GetSize() / 2 - TargetSize / 2, TargetSize);
 
 	uint32_t TargetDriver = LWVideoDriver::OpenGL4_5 | LWVideoDriver::DirectX11_1;
 	//TargetDriver |= LWVideoDriver::DebugLayer;
@@ -140,11 +139,11 @@ App::App(LWAllocator &Allocator) : m_Allocator(Allocator) {
 		m_JobQueue.SetFinished(true);
 		return;
 	}
-	m_Window->SetTitlef("IsoSpriteGenerator | %s | %s | %s", DriverNames[m_Driver->GetDriverID()], PlatformNames[LWPLATFORM_ID], ArchNames[LWARCH_ID]);
+	m_Window->SetTitle(LWUTF8I::Fmt<256>("IsoSpriteGenerator | {} | {} | {}", DriverNames[m_Driver->GetDriverID()], PlatformNames[LWPLATFORM_ID], ArchNames[LWARCH_ID]));
 
-	m_Renderer = m_Allocator.Allocate<Renderer>(m_Driver, m_Allocator);
+	m_Renderer = m_Allocator.Create<Renderer>(m_Driver, m_Allocator);
 
-	m_States[State::Viewer] = m_Allocator.Allocate<State_Viewer>(this, m_Allocator);
+	m_States[State::Viewer] = m_Allocator.Create<State_Viewer>(this, m_Allocator);
 
 	if (!LoadAssets("App:UIData.xml", CurrMode)) {
 		m_JobQueue.SetFinished(true);

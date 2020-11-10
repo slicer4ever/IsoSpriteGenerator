@@ -13,8 +13,8 @@ void UILightSunProps::Update(float dTime, LWEUIManager *UIMan, App *A) {
 	if (!isVisible()) return;
 	LWEUI *Focused = UIMan->GetFocusedUI();
 
-	if (Focused != m_RotationTI) m_RotationTI->Clear().InsertTextf("%.2f", false, false, 1.0f, m_Rotation*LW_RADTODEG);
-	if (Focused != m_PitchTI) m_PitchTI->Clear().InsertTextf("%.2f", false, false, 1.0f, m_Pitch*LW_RADTODEG);
+	if (Focused != m_RotationTI) m_RotationTI->Clear().InsertText(LWUTF8I::Fmt<32>("{:.2}", m_Rotation*LW_RADTODEG));
+	if (Focused != m_PitchTI) m_PitchTI->Clear().InsertText(LWUTF8I::Fmt<32>("{:.2}", m_Pitch*LW_RADTODEG));
 	return;
 }
 
@@ -72,15 +72,15 @@ Light UILightSunProps::MakeLightSource(void) {
 	return Light(Camera::MakeDirection(LWVector2f(m_Rotation, -m_Pitch)), LWVector4f(1.0f), 1.0f, Flags);
 }
 
-UILightSunProps::UILightSunProps(const StackText &Name, LWEUIManager *UIMan, App *A) : UIItem(Name, UIMan) {
-	m_RotationTI = (LWEUITextInput *)UIMan->GetNamedUIf("%s.DirectionTI", Name());
-	m_PitchTI = (LWEUITextInput *)UIMan->GetNamedUIf("%s.PitchTI", Name());
+UILightSunProps::UILightSunProps(const LWUTF8Iterator &Name, LWEUIManager *UIMan, App *A) : UIItem(Name, UIMan) {
+	m_RotationTI = (LWEUITextInput *)UIMan->GetNamedUI(LWUTF8I::Fmt<128>("{}.DirectionTI", Name));
+	m_PitchTI = (LWEUITextInput *)UIMan->GetNamedUI(LWUTF8I::Fmt<128>("{}.PitchTI", Name));
 
 	UIMan->RegisterMethodEvent(m_RotationTI, LWEUI::Event_Changed, &UILightSunProps::RotationTIChanged, this, A);
 	UIMan->RegisterMethodEvent(m_PitchTI, LWEUI::Event_Changed, &UILightSunProps::PitchTIChanged, this, A);
 
-	UIToggle::MakeMethod(m_ShadowCastTgl, StackText("%s.ShadowCastFlag", Name()), UIMan, &UILightSunProps::FlagToggled, this, A);
-	UIToggle::MakeMethod(m_DrawSunTgl, StackText("%s.DrawSunFlag", Name()), UIMan, &UILightSunProps::FlagToggled, this, A);
+	UIToggle::MakeMethod(m_ShadowCastTgl, LWUTF8I::Fmt<128>("{}.ShadowCastFlag", Name), UIMan, &UILightSunProps::FlagToggled, this, A);
+	UIToggle::MakeMethod(m_DrawSunTgl, LWUTF8I::Fmt<128>("{}.DrawSunFlag", Name), UIMan, &UILightSunProps::FlagToggled, this, A);
 }
 
 //UILightIBLProps
@@ -120,9 +120,9 @@ void UILightIBLProps::SerializeSettings(LWEJson &J, LWEJObject *Parent, App *A) 
 	LWEJObject *JIBLSpecular = J.MakeStringElement("IBLSpecular", "", Parent);
 
 	//TODO: Fix escape text bug in LWEJson implementation.
-	JIBLbrdf->SetValuef(J.GetAllocator(), m_brdfPath);
-	JIBLDiffuse->SetValuef(J.GetAllocator(), m_DiffusePath);
-	JIBLSpecular->SetValuef(J.GetAllocator(), m_SpecularPath);
+	JIBLbrdf->SetValue(J.GetAllocator(), m_brdfPath);
+	JIBLDiffuse->SetValue(J.GetAllocator(), m_DiffusePath);
+	JIBLSpecular->SetValue(J.GetAllocator(), m_SpecularPath);
 
 	return;
 }
@@ -132,15 +132,15 @@ void UILightIBLProps::DeserializeSettings(LWEJson &J, LWEJObject *Parent, App *A
 	LWEJObject *JIBLDiffuse = Parent->FindChild("IBLDiffuse", J);
 	LWEJObject *JIBLSpecular = Parent->FindChild("IBLSpecular", J);
 
-	auto LoadPath = [](char *PathBuffer, uint32_t PathBufferSize, const char *JPath, App *A) -> uint32_t {
+	auto LoadPath = [](char8_t *PathBuffer, uint32_t PathBufferSize, const char *JPath, App *A) -> uint32_t {
 		LWAllocator &Alloc = A->GetAllocator();
 		Renderer *R = A->GetRenderer();
 		*PathBuffer = '\0';
 		if (!*JPath) return 0;
 		strncat(PathBuffer, JPath, PathBufferSize);
-		LWImage *Img = Alloc.Allocate<LWImage>();
+		LWImage *Img = Alloc.Create<LWImage>();
 		if (!LWImage::LoadImage(*Img, PathBuffer, Alloc)) {
-			LogWarnf("Error: Could not load file: '%s'", PathBuffer);
+			LogWarn(LWUTF8I::Fmt<128>("Error: Could not load file: '{}'", PathBuffer));
 			LWAllocator::Destroy(Img);
 			*PathBuffer = '\0';
 			return 0;
@@ -155,13 +155,13 @@ void UILightIBLProps::DeserializeSettings(LWEJson &J, LWEJObject *Parent, App *A
 	return;
 }
 
-uint32_t UILightIBLProps::LoadImage(char *PathBuffer, uint32_t PathBufferSize, App *A) {
+uint32_t UILightIBLProps::LoadImage(char8_t *PathBuffer, uint32_t PathBufferSize, App *A) {
 	LWAllocator &Alloc = A->GetAllocator();
 	Renderer *R = A->GetRenderer();
-	if (!LWWindow::MakeLoadFileDialog("*.png;*.dds;*.tga\0Texture File\0\0", PathBuffer, PathBufferSize)) return 0;
-	LWImage *Img = Alloc.Allocate<LWImage>();
+	if (!LWWindow::MakeLoadFileDialog("*.png;*.dds;*.tga:Texture File", PathBuffer, PathBufferSize)) return 0;
+	LWImage *Img = Alloc.Create<LWImage>();
 	if (!LWImage::LoadImage(*Img, PathBuffer, Alloc)) {
-		A->SetMessage(StackText("Error: Failed to load texture: '%s'", PathBuffer));
+		A->SetMessage(LWUTF8I::Fmt<128>("Error: Failed to load texture: '{}'", PathBuffer));
 		*PathBuffer = '\0';
 		LWAllocator::Destroy(Img);
 		return 0;
@@ -196,14 +196,14 @@ void UILightIBLProps::OpenSpecularBtnReleased(LWEUI *UI, uint32_t EventCode, voi
 	return; 
 }
 
-UILightIBLProps::UILightIBLProps(const StackText &Name, LWEUIManager *UIMan, App *A) : UIItem(Name, UIMan) {
-	UILabelBtn::MakeMethod(m_OpenbrdfBtn, StackText("%s.brdfBtn", Name()), UIMan, &UILightIBLProps::OpenbrdfBtnReleased, this, A);
-	UILabelBtn::MakeMethod(m_OpenDiffuseBtn, StackText("%s.DiffuseBtn", Name()), UIMan, &UILightIBLProps::OpenDiffuseBtnReleased, this, A);
-	UILabelBtn::MakeMethod(m_OpenSpecularBtn, StackText("%s.SpecularBtn", Name()), UIMan, &UILightIBLProps::OpenSpecularBtnReleased, this, A);
+UILightIBLProps::UILightIBLProps(const LWUTF8Iterator &Name, LWEUIManager *UIMan, App *A) : UIItem(Name, UIMan) {
+	UILabelBtn::MakeMethod(m_OpenbrdfBtn, LWUTF8I::Fmt<128>("{}.brdfBtn", Name), UIMan, &UILightIBLProps::OpenbrdfBtnReleased, this, A);
+	UILabelBtn::MakeMethod(m_OpenDiffuseBtn, LWUTF8I::Fmt<128>("{}.DiffuseBtn", Name), UIMan, &UILightIBLProps::OpenDiffuseBtnReleased, this, A);
+	UILabelBtn::MakeMethod(m_OpenSpecularBtn, LWUTF8I::Fmt<128>("{}.SpecularBtn", Name), UIMan, &UILightIBLProps::OpenSpecularBtnReleased, this, A);
 
-	m_brdfPreview = (LWEUIRect *)UIMan->GetNamedUIf("%s.brdfPreview", Name());
-	m_DiffusePreview = (LWEUIRect *)UIMan->GetNamedUIf("%s.DiffusePreview", Name());
-	m_SpecularPreview = (LWEUIRect *)UIMan->GetNamedUIf("%s.SpecularPreview", Name());
+	m_brdfPreview = (LWEUIRect *)UIMan->GetNamedUI(LWUTF8I::Fmt<128>("{}.brdfPreview", Name));
+	m_DiffusePreview = (LWEUIRect *)UIMan->GetNamedUI(LWUTF8I::Fmt<128>("{}.DiffusePreview", Name));
+	m_SpecularPreview = (LWEUIRect *)UIMan->GetNamedUI(LWUTF8I::Fmt<128>("{}.SpecularPreview", Name));
 
 	m_brdfMaterial = LWEUIMaterial(LWVector4f(0.0f, 0.0f, 0.0f, 1.0f));
 	m_DiffuseMaterial = LWEUIMaterial(LWVector4f(0.0f, 0.0f, 0.0f, 1.0f));
@@ -260,12 +260,12 @@ void UILightingProps::ToggleGroupChanged(UIToggleGroup &Group, uint32_t Index, U
 	return;
 }
 
-UILightingProps::UILightingProps(const StackText &Name, LWEUIManager *UIMan, UIViewer *Viewer, App *A) : UIItem(Name, UIMan), m_Viewer(Viewer) {
-	new (&m_SunProps) UILightSunProps(StackText("%s.UILightSunProps", Name()), UIMan, A);
-	new (&m_IBLProps) UILightIBLProps(StackText("%s.UILightIBLProps", Name()), UIMan, A);
+UILightingProps::UILightingProps(const LWUTF8Iterator &Name, LWEUIManager *UIMan, UIViewer *Viewer, App *A) : UIItem(Name, UIMan), m_Viewer(Viewer) {
+	new (&m_SunProps) UILightSunProps(LWUTF8I::Fmt<128>("{}.UILightSunProps", Name), UIMan, A);
+	new (&m_IBLProps) UILightIBLProps(LWUTF8I::Fmt<128>("{}.UILightIBLProps", Name), UIMan, A);
 
 	UIToggleGroup::MakeMethod(m_LightTypeTgl, UIToggleGroup::AlwaysOneActive, &UILightingProps::ToggleGroupChanged, this, A);
-	m_LightTypeTgl.PushToggle(StackText("%s.SunTgl", Name()), UIMan);
-	m_LightTypeTgl.PushToggle(StackText("%s.IBLTgl", Name()), UIMan);
+	m_LightTypeTgl.PushToggle(LWUTF8I::Fmt<128>("{}.SunTgl", Name), UIMan);
+	m_LightTypeTgl.PushToggle(LWUTF8I::Fmt<128>("{}.IBLTgl", Name), UIMan);
 	m_SunProps.SetVisible(true);
 }

@@ -30,7 +30,7 @@ struct Node {
 class Scene {
 public:
 
-	static bool LoadGLTFFile(Scene &S, const LWText &Path, Renderer *R, LWAllocator &Allocator);
+	static bool LoadGLTFFile(Scene &S, const LWUTF8Iterator &Path, Renderer *R, LWAllocator &Allocator);
 
 	bool PushImageTexID(uint32_t ID);
 
@@ -45,6 +45,9 @@ public:
 	LWVector4i CaclulateBounding(float Time, const LWSMatrix4f &Transform, const LWVector2f &WndSize, Camera &Cam, int32_t BorderSize, LWSVector4f &BoundsMin, LWSVector4f &BoundsMax);
 
 	void Finalize(void);
+
+	//Releases all internal resources(textures
+	void Release(Renderer *R);
 
 	uint32_t GetImageTexID(uint32_t Idx);
 

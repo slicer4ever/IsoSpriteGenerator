@@ -7,7 +7,6 @@
 #include <LWEUI/LWEUIListBox.h>
 #include <LWEUI/LWEUITextInput.h>
 #include <LWEUI/LWEUIRect.h>
-#include "StackText.h"
 
 struct UIToggle;
 
@@ -28,7 +27,7 @@ struct UIItem {
 
 	bool isVisible(void);
 
-	UIItem(const StackText &Name, LWEUIManager *UIManager);
+	UIItem(const LWUTF8Iterator &Name, LWEUIManager *UIManager);
 
 	UIItem() = default;
 	
@@ -37,12 +36,12 @@ struct UIItem {
 
 struct UILabelBtn : public UIItem {
 	template<class Method, class Obj>
-	static void MakeMethod(UILabelBtn &LblBtn, const StackText &Name, LWEUIManager *UIManager, Method CB, Obj *O, void *UserData) {
+	static void MakeMethod(UILabelBtn &LblBtn, const LWUTF8Iterator &Name, LWEUIManager *UIManager, Method CB, Obj *O, void *UserData) {
 		new (&LblBtn) UILabelBtn(Name, UIManager, std::bind(CB, O, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), UserData);
 		return;
 	}
 
-	UILabelBtn(const StackText &Name, LWEUIManager *UIManager, LWEUIEventCallback ButtonReleasedFunc, void *UserData);
+	UILabelBtn(const LWUTF8Iterator &Name, LWEUIManager *UIManager, LWEUIEventCallback ButtonReleasedFunc, void *UserData);
 
 	UILabelBtn() = default;
 
@@ -52,7 +51,7 @@ struct UILabelBtn : public UIItem {
 
 struct UIToggle : UIItem {
 	template<class Method, class Obj>
-	static void MakeMethod(UIToggle &Tgl, const StackText &Name, LWEUIManager *UIManager, Method CB, Obj *O, void *UserData) {
+	static void MakeMethod(UIToggle &Tgl, const LWUTF8Iterator &Name, LWEUIManager *UIManager, Method CB, Obj *O, void *UserData) {
 		new (&Tgl) UIToggle(Name, UIManager, std::bind(CB, O, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), UserData);
 	}
 
@@ -66,7 +65,7 @@ struct UIToggle : UIItem {
 
 	bool isLocked(void) const;
 
-	UIToggle(const StackText &Name, LWEUIManager *UIMan, UIToggleCallback Callback, void *UserData);
+	UIToggle(const LWUTF8Iterator &Name, LWEUIManager *UIMan, UIToggleCallback Callback, void *UserData);
 
 	UIToggle() = default;
 
@@ -80,7 +79,7 @@ struct UIToggle : UIItem {
 struct UIListDialog : public UIItem {
 	
 	template<class MethodPop, class MethodSel, class Obj>
-	static void MakeMethod(UIListDialog &Dialog, const StackText &Name, LWEUIManager *UIMan, MethodPop PopulateMethod, MethodSel SelectedMethod, Obj *O, void *UserData) {
+	static void MakeMethod(UIListDialog &Dialog, const LWUTF8Iterator &Name, LWEUIManager *UIMan, MethodPop PopulateMethod, MethodSel SelectedMethod, Obj *O, void *UserData) {
 		new (&Dialog) UIListDialog(Name, UIMan, std::bind(PopulateMethod, O, std::placeholders::_1, std::placeholders::_2), std::bind(SelectedMethod, O, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), UserData);
 	}
 
@@ -101,11 +100,11 @@ struct UIListDialog : public UIItem {
 
 	UIItem &SetVisible(bool Visibile);
 
-	bool PushItem(const StackText &Value, void *UserData);
+	bool PushItem(const LWUTF8Iterator &Value, void *UserData);
 
 	void Populate(void);
 
-	UIListDialog(const StackText &Name, LWEUIManager *UIMan, UISearchPopulateCallback PopulateCB, UISearchSelectedCallback SelectedCB, void *UserData);
+	UIListDialog(const LWUTF8Iterator &Name, LWEUIManager *UIMan, UISearchPopulateCallback PopulateCB, UISearchSelectedCallback SelectedCB, void *UserData);
 
 	UIListDialog() = default;
 
@@ -131,7 +130,7 @@ struct UIToggleGroup {
 
 	void ToggleChanged(UIToggle &T, bool Active, void *UserData);
 
-	bool PushToggle(const StackText &Name, LWEUIManager *UIMan);
+	bool PushToggle(const LWUTF8Iterator &Name, LWEUIManager *UIMan);
 
 	UIToggleGroup &SetToggled(uint32_t i, bool Toggled);
 

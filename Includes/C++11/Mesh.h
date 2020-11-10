@@ -30,6 +30,10 @@ struct Bone {
 	uint32_t m_ChildBoneID = -1;
 	uint32_t m_Pad0;
 
+	LWUTF8Iterator GetName(void) const;
+
+	Bone(const LWUTF8Iterator &Name, const LWSMatrix4f &InvBindMatrix, const LWSMatrix4f &Transform);
+
 	Bone() = default;
 };
 
@@ -94,7 +98,7 @@ public:
 
 	uint32_t FindBone(uint32_t NameHash) const;
 
-	uint32_t FindBone(const char *Name) const;
+	uint32_t FindBone(const LWUTF8Iterator &Name) const;
 
 	uint32_t GetBoneCount(void) const;
 

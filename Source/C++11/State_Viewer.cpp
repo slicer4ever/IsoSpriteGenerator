@@ -8,8 +8,8 @@
 #include <LWEJson.h>
 
 
-const char *State_Viewer::RenderPathNames[] = { "", "_Emissions", "_Normals", "_Albedo", "_MetallicRough" };
-const char *State_Viewer::SettingPath = "App:Settings.json";
+const char8_t *State_Viewer::RenderPathNames[] = { "", "_Emissions", "_Normals", "_Albedo", "_MetallicRough" };
+const char8_t *State_Viewer::SettingPath = "App:Settings.json";
 
 void State_Viewer::Update(float dTime, App *A, uint64_t lCurrentTime) {
 	LWEUIManager *UIMan = A->GetUIManager();
@@ -131,11 +131,11 @@ void State_Viewer::LoadAssets(LWEUIManager *UIManager, LWEAssetManager *AssetMan
 	return;
 }
 
-bool State_Viewer::LoadScene(const char *Path, App *A) {
+bool State_Viewer::LoadScene(const LWUTF8Iterator &Path, App *A) {
 	LWAllocator &Alloc = A->GetAllocator();
 	//Dispose of very old scene if it's still around.
 	m_OldScene =LWAllocator::Destroy(m_OldScene);
-	Scene *S = Alloc.Allocate<Scene>();
+	Scene *S = Alloc.Create<Scene>();
 	if (!Scene::LoadGLTFFile(*S, Path, A->GetRenderer(), Alloc)) {
 		A->SetMessage("Error loading gltf model.");
 		LWAllocator::Destroy(S);
@@ -157,8 +157,6 @@ void State_Viewer::SetTime(float Time) {
 
 bool State_Viewer::FinalizeExport(Renderer *R, App *A) {
 	//Additional output names.
-	char PathNoExt[256]="";
-	char Ext[256]="";
 	if (m_ExportFinalFrame >= R->GetCurrentRenderedFrame()) return false;
 	LWAllocator &Alloc = A->GetAllocator();
 	LWVideoDriver *Driver = A->GetVideoDriver();
@@ -170,11 +168,9 @@ bool State_Viewer::FinalizeExport(Renderer *R, App *A) {
 		return false;
 	}
 	//Strip off extension:
-	LWFileStream::GetExtension(m_ExportPath, Ext, sizeof(Ext));
-	uint32_t ExtLen = (uint32_t)strlen(Ext);
-	if (ExtLen) ExtLen += 1; //Get the '.'
-	uint32_t Len = (uint32_t)strlen(m_ExportPath)-ExtLen;
-	strncat(PathNoExt, m_ExportPath, Len);
+	LWUTF8Iterator Dir, Name, Ext;
+	LWFileStream::SplitPath(m_ExportPath, Dir, Name, Ext);
+	LWUTF8Iterator NameNoExt = LWUTF8Iterator(Dir, Ext);
 
 	//Download image from gpu and write output.
 	LWImage OutputImg = LWImage(OutputTex->Get2DSize(), OutputTex->GetPackType(), nullptr, 0, A->GetAllocator());
@@ -186,16 +182,15 @@ bool State_Viewer::FinalizeExport(Renderer *R, App *A) {
 			return false;
 		}
 		//Add final extensions.
-		*Ext = '\0';
-		snprintf(Ext, sizeof(Ext), "%s%s.png", PathNoExt, RenderPathNames[i]);
-		if (!LWImage::SaveImagePNG(OutputImg, Ext, A->GetAllocator())) {
-			A->SetMessage(StackText("Error occurred saving file '%s'", m_ExportPath));
+
+		if (!LWImage::SaveImagePNG(OutputImg, LWUTF8I::Fmt<256>("{}.png", NameNoExt), A->GetAllocator())) {
+			A->SetMessage(LWUTF8I::Fmt<128>("Error occurred saving file '{}'", m_ExportPath));
 			m_Exporting = false;
 			return false;
 		}
 	}
 	//Export Meta-data:
-	if (!ExportMetaData(PathNoExt, A)) {
+	if (!ExportMetaData(NameNoExt, A)) {
 		m_Exporting = false;
 		return true;
 	}
@@ -206,9 +201,8 @@ bool State_Viewer::FinalizeExport(Renderer *R, App *A) {
 	return true;
 }
 
-bool State_Viewer::ExportMetaData(const char *ExportPathNoExt, App *A) {
-	const char *RenderImageNames[] = { "Color", "Emissions", "Normals", "Albedo", "Metallic" };
-	char PathBuffer[256];
+bool State_Viewer::ExportMetaData(const LWUTF8Iterator &ExportPathNoExt, App *A) {
+	const char8_t *RenderImageNames[] = { "Color", "Emissions", "Normals", "Albedo", "Metallic" };
 	char Buffer[1024 * 128]; //128kb buffer for json.
 	UIFile &UIFileProps = m_UIViewer.m_FileProps;
 	UIIsometricProps &IsoProps = m_UIViewer.m_IsometricProps;
@@ -219,10 +213,11 @@ bool State_Viewer::ExportMetaData(const char *ExportPathNoExt, App *A) {
 
 	LWAllocator &Alloc = A->GetAllocator();
 	LWEJson J = LWEJson(Alloc);
-	LWFileStream::MakeFileName(ExportPathNoExt, PathBuffer, sizeof(PathBuffer));
+	LWUTF8Iterator Dir, Name;
+	LWFileStream::SplitPath(ExportPathNoExt, Dir, Name);
 	for (uint32_t i = 0; i < RenderCount; i++) {
 		if (!UIFileProps.m_ExportTgls.isToggled(i)) continue;
-		J.MakeStringElementf(RenderImageNames[i], "%s%s.png", nullptr, PathBuffer, RenderPathNames[i]);
+		J.MakeStringElement(RenderImageNames[i], LWUTF8I::Fmt<256>("{}{}.png", Name, RenderPathNames[i]));
 	}
 	J.MakeValueElement("TotalTime", m_ViewScene->GetTotalTime());
 	J.MakeValueElement("TimeOffset", AnimProps.m_Offset);
@@ -248,17 +243,16 @@ bool State_Viewer::ExportMetaData(const char *ExportPathNoExt, App *A) {
 	}
 
 	uint32_t Len = J.Serialize(Buffer, sizeof(Buffer), true);
-	snprintf(PathBuffer, sizeof(PathBuffer), "%s.json", ExportPathNoExt);
 	LWFileStream Stream;
-	if (!LWFileStream::OpenStream(Stream, PathBuffer, LWFileStream::WriteMode | LWFileStream::BinaryMode, Alloc, nullptr)) {
-		A->SetMessage(StackText("Error occurred while opening file '%s'", PathBuffer));
+	if (!LWFileStream::OpenStream(Stream, LWUTF8I::Fmt<256>("{}.json", ExportPathNoExt), LWFileStream::WriteMode | LWFileStream::BinaryMode, Alloc, nullptr)) {
+		A->SetMessage(LWUTF8I::Fmt<128>("Error occurred while opening file '{}.json'", ExportPathNoExt));
 		return false;
 	}
 	Stream.Write(Buffer, Len);
 	return true;
 }
 
-bool State_Viewer::SaveSettings(const char *Path, App *A) {
+bool State_Viewer::SaveSettings(const LWUTF8Iterator &Path, App *A) {
 	char Buffer[1024 * 128]; //128kb buffer.
 	LWAllocator &Alloc = A->GetAllocator();
 	LWFileStream Stream;
@@ -266,28 +260,27 @@ bool State_Viewer::SaveSettings(const char *Path, App *A) {
 	m_UIViewer.SerializeSettings(J, nullptr, A);
 	uint32_t Len = J.Serialize(Buffer, sizeof(Buffer), true);
 	if (!LWFileStream::OpenStream(Stream, Path, LWFileStream::WriteMode | LWFileStream::BinaryMode, Alloc)) {
-		LogWarnf("Error: Could not open setting file: '%s' to write to.", Path);
+		LogWarn(LWUTF8I::Fmt<256>("Error: Could not open setting file: '{}' to write to.", Path));
 		return false;
 	}
 	Stream.Write(Buffer, Len);
 	return true;
 }
 
-bool State_Viewer::LoadSettings(const char *Path, App *A) {
+bool State_Viewer::LoadSettings(const LWUTF8Iterator &Path, App *A) {
 	LWAllocator &Alloc = A->GetAllocator();
 	LWEJson J = LWEJson(Alloc);
 	if (!LWEJson::LoadFile(J, Path, Alloc, nullptr)) {
-		LogWarnf("Error: Could not load/parse settings json file: '%s'", Path);
+		LogWarn(LWUTF8I::Fmt<256>("Error: Could not load/parse settings json file: '{}'", Path));
 		return false;
 	}
 	m_UIViewer.DeserializeSettings(J, nullptr, A);
 	return true;
 }
 
-bool State_Viewer::Export(const char *ExportPath) {
-	*m_ExportPath = '\0';
+bool State_Viewer::Export(const LWUTF8Iterator &ExportPath) {
 	//Initialize export settings.
-	strncat(m_ExportPath, ExportPath, sizeof(m_ExportPath));
+	ExportPath.Copy(m_ExportPath, sizeof(m_ExportPath));
 	m_ExportFirstFrame = -1;
 	m_ExportFinalFrame = -1;
 	m_Exporting = true;

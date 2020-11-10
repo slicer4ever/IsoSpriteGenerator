@@ -37,7 +37,7 @@ struct UIAnimationProps : public UIItem {
 
 	void FrameOffsetTIChanged(LWEUI *UI, uint32_t EventCode, void *UserData);
 
-	UIAnimationProps(const StackText &Name, LWEUIManager *UIMan, UIViewer *Viewer, App *A);
+	UIAnimationProps(const LWUTF8Iterator &Name, LWEUIManager *UIMan, UIViewer *Viewer, App *A);
 
 	UIAnimationProps() = default;
 

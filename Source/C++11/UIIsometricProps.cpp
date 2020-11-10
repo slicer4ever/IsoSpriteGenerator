@@ -7,8 +7,8 @@ void UIIsometricProps::Update(float dTime, LWEUIManager *UIMan, App *A) {
 	if (!isVisible()) return;
 	LWEUI *Focused = UIMan->GetFocusedUI();
 
-	if (Focused != m_DirectionsTI) m_DirectionsTI->Clear().InsertTextf("%d", false, false, 1.0f, m_DirectionCnt);
-	if (Focused != m_OffsetTI) m_OffsetTI->Clear().InsertTextf("%.2f", false, false, 1.0f, m_ThetaOffset * LW_RADTODEG);
+	if (Focused != m_DirectionsTI) m_DirectionsTI->Clear().InsertText(LWUTF8I::Fmt<32>("{}", m_DirectionCnt));
+	if (Focused != m_OffsetTI) m_OffsetTI->Clear().InsertText(LWUTF8I::Fmt<32>("{:.2}", m_ThetaOffset * LW_RADTODEG));
 
 	return;
 }
@@ -93,12 +93,12 @@ void UIIsometricProps::MdlPrevBtnReleased(LWEUI *UI, uint32_t EventCode, void *U
 	return;
 }
 
-UIIsometricProps::UIIsometricProps(const StackText &Name, LWEUIManager *UIMan, UIViewer *Viewer, App *A) : UIItem(Name, UIMan), m_Viewer(Viewer) {
-	UILabelBtn::MakeMethod(m_MdlNextBtn, StackText("%s.MdlNextBtn", Name()), UIMan, &UIIsometricProps::MdlNextBtnReleased, this, A);
-	UILabelBtn::MakeMethod(m_MdlPrevBtn, StackText("%s.MdlPrevBtn", Name()), UIMan, &UIIsometricProps::MdlPrevBtnReleased, this, A);
+UIIsometricProps::UIIsometricProps(const LWUTF8Iterator &Name, LWEUIManager *UIMan, UIViewer *Viewer, App *A) : UIItem(Name, UIMan), m_Viewer(Viewer) {
+	UILabelBtn::MakeMethod(m_MdlNextBtn, LWUTF8I::Fmt<128>("{}.MdlNextBtn", Name), UIMan, &UIIsometricProps::MdlNextBtnReleased, this, A);
+	UILabelBtn::MakeMethod(m_MdlPrevBtn, LWUTF8I::Fmt<128>("{}.MdlPrevBtn", Name), UIMan, &UIIsometricProps::MdlPrevBtnReleased, this, A);
 
-	m_DirectionsTI = (LWEUITextInput *)UIMan->GetNamedUIf("%s.DirectionCntTI", Name());
-	m_OffsetTI = (LWEUITextInput *)UIMan->GetNamedUIf("%s.OffsetTI", Name());
+	m_DirectionsTI = (LWEUITextInput *)UIMan->GetNamedUI(LWUTF8I::Fmt<128>("{}.DirectionCntTI", Name));
+	m_OffsetTI = (LWEUITextInput *)UIMan->GetNamedUI(LWUTF8I::Fmt<128>("{}.OffsetTI", Name));
 
 	UIMan->RegisterMethodEvent(m_DirectionsTI, LWEUI::Event_Changed, &UIIsometricProps::DirectionsTIChanged, this, A);
 	UIMan->RegisterMethodEvent(m_OffsetTI, LWEUI::Event_Changed, &UIIsometricProps::OffsetTIChanged, this, A);

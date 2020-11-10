@@ -22,10 +22,10 @@ void UIAnimationProps::Update(float dTime, LWEUIManager *UIMan, App *A) {
 
 
 	m_TimeSB->SetMaxScroll(TotalTime+ScrollSize).SetScrollSize(ScrollSize).SetScroll(Time);
-	m_TimeLbl->SetTextf("Time: %.2f/%.2f", Time, TotalTime);
+	m_TimeLbl->SetText(LWUTF8I::Fmt<64>("Time: {:.2}/{:.2}", Time, TotalTime));
 
-	if (Focused != m_FrameCntTI) m_FrameCntTI->Clear().InsertTextf("%d", false, false, 1.0f, m_FrameCnt);
-	if (Focused != m_OffsetTI) m_OffsetTI->Clear().InsertTextf("%.2f", false, false, 1.0f, m_Offset);
+	if (Focused != m_FrameCntTI) m_FrameCntTI->Clear().InsertText(LWUTF8I::Fmt<32>("{}", m_FrameCnt));
+	if (Focused != m_OffsetTI) m_OffsetTI->Clear().InsertText(LWUTF8I::Fmt<32>("{:.2}", m_Offset));
 	return;
 }
 
@@ -130,16 +130,16 @@ void UIAnimationProps::FrameOffsetTIChanged(LWEUI *UI, uint32_t EventCode, void 
 	return;
 }
 
-UIAnimationProps::UIAnimationProps(const StackText &Name, LWEUIManager *UIMan, UIViewer *Viewer, App *A) : UIItem(Name, UIMan), m_Viewer(Viewer) {
-	UILabelBtn::MakeMethod(m_PlayBtn, StackText("%s.PlayBtn", Name()), UIMan, &UIAnimationProps::PlayBtnReleased, this, A);
-	UILabelBtn::MakeMethod(m_RewindBtn, StackText("%s.RewindBtn", Name()), UIMan, &UIAnimationProps::RewindBtnReleased, this, A);
-	UILabelBtn::MakeMethod(m_NextFrameBtn, StackText("%s.NextFrameBtn", Name()), UIMan, &UIAnimationProps::NextFrameBtnReleased, this, A);
-	UILabelBtn::MakeMethod(m_PrevFrameBtn, StackText("%s.PrevFrameBtn", Name()), UIMan, &UIAnimationProps::PrevFrameBtnReleased, this, A);
+UIAnimationProps::UIAnimationProps(const LWUTF8Iterator &Name, LWEUIManager *UIMan, UIViewer *Viewer, App *A) : UIItem(Name, UIMan), m_Viewer(Viewer) {
+	UILabelBtn::MakeMethod(m_PlayBtn, LWUTF8I::Fmt<128>("{}.PlayBtn", Name), UIMan, &UIAnimationProps::PlayBtnReleased, this, A);
+	UILabelBtn::MakeMethod(m_RewindBtn, LWUTF8I::Fmt<128>("{}.RewindBtn", Name), UIMan, &UIAnimationProps::RewindBtnReleased, this, A);
+	UILabelBtn::MakeMethod(m_NextFrameBtn, LWUTF8I::Fmt<128>("{}.NextFrameBtn", Name), UIMan, &UIAnimationProps::NextFrameBtnReleased, this, A);
+	UILabelBtn::MakeMethod(m_PrevFrameBtn, LWUTF8I::Fmt<128>("{}.PrevFrameBtn", Name), UIMan, &UIAnimationProps::PrevFrameBtnReleased, this, A);
 
-	m_TimeSB = (LWEUIScrollBar *)UIMan->GetNamedUIf("%s.TimeSB", Name());
-	m_TimeLbl = (LWEUILabel *)UIMan->GetNamedUIf("%s.TimeLbl", Name());
-	m_FrameCntTI = (LWEUITextInput *)UIMan->GetNamedUIf("%s.FrameCntTI", Name());
-	m_OffsetTI = (LWEUITextInput *)UIMan->GetNamedUIf("%s.FrameOffsetTI", Name());
+	m_TimeSB = (LWEUIScrollBar *)UIMan->GetNamedUI(LWUTF8I::Fmt<128>("{}.TimeSB", Name));
+	m_TimeLbl = (LWEUILabel *)UIMan->GetNamedUI(LWUTF8I::Fmt<128>("{}.TimeLbl", Name));
+	m_FrameCntTI = (LWEUITextInput *)UIMan->GetNamedUI(LWUTF8I::Fmt<128>("{}.FrameCntTI", Name));
+	m_OffsetTI = (LWEUITextInput *)UIMan->GetNamedUI(LWUTF8I::Fmt<128>("{}.FrameOffsetTI", Name));
 
 	UIMan->RegisterMethodEvent(m_TimeSB, LWEUI::Event_Changed, &UIAnimationProps::TimeSBChanged, this, A);
 	UIMan->RegisterMethodEvent(m_TimeSB, LWEUI::Event_Pressed, &UIAnimationProps::TimeSBPressed, this, A);

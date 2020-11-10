@@ -13,7 +13,7 @@
 //PendingGeometry
 LWVideoBuffer *PendingGeometry::MakeBuffer(LWVideoDriver *Driver, LWAllocator &Allocator) {
 	LWVideoBuffer *Buf = Driver->CreateVideoBuffer(m_BufferType, LWVideoBuffer::Static, m_TypeSize, m_Count, Allocator, (uint8_t*)m_Data);
-	if (!Buf) LogCriticalf("Error could not create buffer for id: %d", m_ID);
+	if (!Buf) LogCritical(LWUTF8I::Fmt<128>("Error could not create buffer for id: {}", m_ID));
 	return Buf;
 }
 
@@ -303,7 +303,7 @@ GFrame &GFrame::InitializeRTPasses(const LWSVector4f &SceneAABBMin, const LWSVec
 
 uint32_t GFrame::NextAnimation(void) {
 	if(m_AnimCount>=MaxAnimations){
-		LogWarnf("GAnimData has been exhausted.");
+		LogWarn("GAnimData has been exhausted.");
 		return -1;
 	}
 	return m_AnimCount++;
@@ -311,7 +311,7 @@ uint32_t GFrame::NextAnimation(void) {
 
 uint32_t GFrame::PushAnimation(LWSMatrix4f *BoneMatrixs, uint32_t BoneCount) {
 	if(m_AnimCount>=MaxAnimations){
-		LogWarnf("GAnimData has been exhausted.");
+		LogWarn("GAnimData has been exhausted.");
 		return -1;
 	}
 	GAnimData *A = GetAnimDataAt(m_AnimCount);
@@ -341,7 +341,7 @@ uint32_t GFrame::PassBitsInAABB(const LWSVector4f &AAMin, const LWSVector4f &AAM
 
 uint32_t GFrame::PushModel(GFrameModel &Mdl, uint32_t PassBits, uint32_t AnimID, const LWSMatrix4f &Transform, const GMaterial &Material, bool Transparent) {
 	if(m_ModelCount>=MaxModels){
-		LogWarnf("GFrameModel has been exhausted.");
+		LogWarn("GFrameModel has been exhausted.");
 		return -1;
 	}
 	GModelData *M = GetModelDataAt(m_ModelCount);
@@ -360,7 +360,7 @@ uint32_t GFrame::PushModel(GFrameModel &Mdl, uint32_t PassBits, uint32_t AnimID,
 
 uint32_t GFrame::PushLight(const Light &L) {
 	if(m_LightCount>=MaxLights){
-		LogWarnf("Lights has been exhausted.");
+		LogWarn("Lights has been exhausted.");
 		return -1;
 	}
 	if (m_PassList[MainViewPass].isInitialized(m_FrameID)) {
@@ -398,8 +398,8 @@ GFrame::GFrame(LWVideoDriver *Driver, LWAllocator &Allocator) : m_Driver(Driver)
 	m_PassDataBuffer = m_Driver->AllocatePaddedArray<GPassData>(MaxRawPasses, Allocator);
 	m_ModelDataBuffer = m_Driver->AllocatePaddedArray<GModelData>(MaxModels, Allocator);
 	m_AnimDataBuffer = m_Driver->AllocatePaddedArray<GAnimData>(MaxAnimations, Allocator);
-	m_ParticleVertices = Allocator.AllocateArray<ParticleVert>(MaxParticleVertices);
-	m_LightsBuffer = Allocator.AllocateArray<GLight>(MaxLights);
+	m_ParticleVertices = Allocator.AllocateA<ParticleVert>(MaxParticleVertices);
+	m_LightsBuffer = Allocator.AllocateA<GLight>(MaxLights);
 }
 
 GFrame::~GFrame() {
@@ -477,7 +477,7 @@ Renderer &Renderer::SizeUpdated(LWWindow *Window) {
 
 
 	uint32_t KernelSize = m_Driver->GetUniformPaddedLength<GGaussianKernel>(GaussianKernelCount);
-	char *GKernel = m_Allocator.AllocateArray<char>(KernelSize);
+	char *GKernel = m_Allocator.AllocateA<char>(KernelSize);
 	GGaussianKernel::MakeKernel(m_Driver, ScreenGaussianKernel, 10.0f, m_ScreenFB->GetSize(), GKernel);
 	if (m_GaussianKernel) m_Driver->DestroyVideoBuffer(m_GaussianKernel);
 	m_GaussianKernel = m_Driver->CreatePaddedVideoBuffer<GGaussianKernel>(LWVideoBuffer::Uniform, LWVideoBuffer::Static, GaussianKernelCount, m_Allocator, GKernel);
@@ -1118,7 +1118,7 @@ uint32_t Renderer::PushPendingGeometry(uint32_t ID, uint32_t DataType, char *Dat
 	char *D = Data;
 	if (Copy) {
 		uint32_t Len = DataCnt * DataSize;
-		D = Allocator.AllocateArray<char>(Len);
+		D = Allocator.AllocateA<char>(Len);
 		std::copy(Data, Data + Len, D);
 	}
 	PendingGeometry &P = m_PendingGeometry[m_PendingGeomWriteFrame % MaxPendingGeometry];
@@ -1581,7 +1581,7 @@ Renderer::Renderer(LWVideoDriver *Driver, LWAllocator &Allocator) : m_Allocator(
 	m_ParticleIdxID = NextGeometryID();
 
 	uint32_t ParticleIdxCount = GFrame::MaxParticleVertices / 4 * 6;
-	uint32_t *ParticleIdxBuffer = Allocator.AllocateArray<uint32_t>(ParticleIdxCount);
+	uint32_t *ParticleIdxBuffer = Allocator.AllocateA<uint32_t>(ParticleIdxCount);
 	for (uint32_t i = 0, n = 0; i < ParticleIdxCount; i += 6, n += 4) {
 		ParticleIdxBuffer[i + 0] = n; ParticleIdxBuffer[i + 1] = n + 1; ParticleIdxBuffer[i + 2] = n + 2;
 		ParticleIdxBuffer[i + 3] = n + 2; ParticleIdxBuffer[i + 4] = n + 3; ParticleIdxBuffer[i + 5] = n;

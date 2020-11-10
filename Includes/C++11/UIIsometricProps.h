@@ -27,7 +27,7 @@ struct UIIsometricProps : public UIItem {
 
 	void MdlPrevBtnReleased(LWEUI *UI, uint32_t EventCode, void *UserData);
 
-	UIIsometricProps(const StackText &Name, LWEUIManager *UIMan, UIViewer *Viewer, App *A);
+	UIIsometricProps(const LWUTF8Iterator &Name, LWEUIManager *UIMan, UIViewer *Viewer, App *A);
 
 	UIIsometricProps() = default;
 

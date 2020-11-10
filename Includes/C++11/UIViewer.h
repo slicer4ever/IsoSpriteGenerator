@@ -19,7 +19,7 @@ struct UIViewer : public UIItem {
 
 	void ToggleChanged(UIToggleGroup &Group, uint32_t Index, UIToggle &Tgl, bool isToggled, void *UserData);
 
-	UIViewer(const StackText &Name, LWEUIManager *UIMan, App *A);
+	UIViewer(const LWUTF8Iterator &Name, LWEUIManager *UIMan, App *A);
 
 	UIViewer() = default;
 

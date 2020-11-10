@@ -8,7 +8,7 @@
 void UIPerspectiveControls::Update(float dTime, LWEUIManager *UIMan, App *A) {
 	LWEUI *Focused = UIMan->GetFocusedUI();
 	CameraPerspective &P = m_UICamControls->m_Camera.GetPerspectivePropertys();
-	if (Focused != m_FovTI) m_FovTI->Clear().InsertTextf("%.2f", false, false, 1.0f, P.m_FOV * LW_RADTODEG);
+	if (Focused != m_FovTI) m_FovTI->Clear().InsertText(LWUTF8I::Fmt<32>("{:.2}", P.m_FOV * LW_RADTODEG));
 	return;
 }
 
@@ -40,8 +40,8 @@ void UIPerspectiveControls::FovTIChanged(LWEUI *UI, uint32_t EventCode, void *Us
 	return;
 }
 
-UIPerspectiveControls::UIPerspectiveControls(const StackText &Name, LWEUIManager *UIMan, UICameraControls &CamControls) : UIItem(Name, UIMan), m_UICamControls(&CamControls) {
-	m_FovTI = (LWEUITextInput *)UIMan->GetNamedUIf("%s.FovTI", Name());
+UIPerspectiveControls::UIPerspectiveControls(const LWUTF8Iterator &Name, LWEUIManager *UIMan, UICameraControls &CamControls) : UIItem(Name, UIMan), m_UICamControls(&CamControls) {
+	m_FovTI = (LWEUITextInput *)UIMan->GetNamedUI(LWUTF8I::Fmt<128>("{}.FovTI", Name));
 	UIMan->RegisterMethodEvent(m_FovTI, LWEUI::Event_Changed, &UIPerspectiveControls::FovTIChanged, this, nullptr);
 }
 
@@ -49,8 +49,8 @@ UIPerspectiveControls::UIPerspectiveControls(const StackText &Name, LWEUIManager
 void UIOrthoControls::Update(float dTime, LWEUIManager *UIMan, App *A) {
 	LWEUI *Focused = UIMan->GetFocusedUI();
 	CameraOrtho &O = m_UICamControls->m_Camera.GetOrthoPropertys();
-	if (Focused != m_WidthTI) m_WidthTI->Clear().InsertTextf("%.2f", false, false, 1.0f, O.m_Right);
-	if (Focused != m_HeightTI) m_HeightTI->Clear().InsertTextf("%.2f", false, false, 1.0f, O.m_Top);
+	if (Focused != m_WidthTI) m_WidthTI->Clear().InsertText(LWUTF8I::Fmt<32>("{:.2}", O.m_Right));
+	if (Focused != m_HeightTI) m_HeightTI->Clear().InsertText(LWUTF8I::Fmt<32>("{:.2}", O.m_Top));
 	return;
 }
 
@@ -105,9 +105,9 @@ void UIOrthoControls::HeightTIChanged(LWEUI *UI, uint32_t EventCode, void *UserD
 	return;
 }
 
-UIOrthoControls::UIOrthoControls(const StackText &Name, LWEUIManager *UIMan, UICameraControls &CamControls) : UIItem(Name, UIMan), m_UICamControls(&CamControls) {
-	m_WidthTI = (LWEUITextInput *)UIMan->GetNamedUIf("%s.WidthTI", Name());
-	m_HeightTI = (LWEUITextInput *)UIMan->GetNamedUIf("%s.HeightTI", Name());
+UIOrthoControls::UIOrthoControls(const LWUTF8Iterator &Name, LWEUIManager *UIMan, UICameraControls &CamControls) : UIItem(Name, UIMan), m_UICamControls(&CamControls) {
+	m_WidthTI = (LWEUITextInput *)UIMan->GetNamedUI(LWUTF8I::Fmt<128>("{}.WidthTI", Name));
+	m_HeightTI = (LWEUITextInput *)UIMan->GetNamedUI(LWUTF8I::Fmt<128>("{}.HeightTI", Name));
 
 	UIMan->RegisterMethodEvent(m_WidthTI, LWEUI::Event_Changed, &UIOrthoControls::WidthTIChanged, this, nullptr);
 	UIMan->RegisterMethodEvent(m_HeightTI, LWEUI::Event_Changed, &UIOrthoControls::HeightTIChanged, this, nullptr);
@@ -121,9 +121,9 @@ void UICameraControls::Update(float dTime, LWEUIManager *UIMan, App *A) {
 	float Pitch = asinf(-Dir.y());
 	float Theta = atan2f(Dir.z(), Dir.x());
 	float Len = m_Camera.GetPosition().Length3();
-	if (Focused != m_PitchTI) m_PitchTI->Clear().InsertTextf("%.2f", false, false, 1.0f, Pitch * LW_RADTODEG);
-	if (Focused != m_RotationTI) m_RotationTI->Clear().InsertTextf("%.2f", false, false, 1.0f, Theta * LW_RADTODEG);
-	if (Focused != m_DistanceTI) m_DistanceTI->Clear().InsertTextf("%.2f", false, false, 1.0f, Len);
+	if (Focused != m_PitchTI) m_PitchTI->Clear().InsertText(LWUTF8I::Fmt<32>("{:.2}", Pitch * LW_RADTODEG));
+	if (Focused != m_RotationTI) m_RotationTI->Clear().InsertText(LWUTF8I::Fmt<32>("{:.2}", Theta * LW_RADTODEG));
+	if (Focused != m_DistanceTI) m_DistanceTI->Clear().InsertText(LWUTF8I::Fmt<32>("{:.2}", Len));
 	m_PerspectiveControls.SetVisible(!m_Camera.IsOrthoCamera());
 	m_OrthoControls.SetVisible(m_Camera.IsOrthoCamera());
 	if (m_PerspectiveControls.isVisible()) m_PerspectiveControls.Update(dTime, UIMan, A);
@@ -284,7 +284,7 @@ void UICameraControls::DistanceTIChanged(LWEUI *UI, uint32_t EventCode, void *Us
 	return;
 }
 
-UICameraControls::UICameraControls(const StackText &Name, LWEUIManager *UIMan) : UIItem(Name, UIMan) {	
+UICameraControls::UICameraControls(const LWUTF8Iterator &Name, LWEUIManager *UIMan) : UIItem(Name, UIMan) {	
 	const float InitialFOV = LW_PI_4;
 	const float InitialPitch = LW_PI_4;
 	const float InitialTheta = LW_PI_4;
@@ -292,25 +292,25 @@ UICameraControls::UICameraControls(const StackText &Name, LWEUIManager *UIMan) :
 	const LWSVector4f InitDir = Camera::MakeDirection(LWVector2f(InitialTheta, -InitialPitch));
 	const LWSVector4f InitPos = LWSVector4f(0.0f, 0.0f, 0.0f, 1.0f) - InitDir * InitialDistance;
 	m_Camera = Camera(InitPos, InitDir, LWSVector4f(0.0f, 1.0f, 0.0f, 0.0f), 1.0f, InitialFOV, 0.1f, 1000.0f, 0);
-	new (&m_OrthoControls) UIOrthoControls(StackText("%s.OrthoControls", Name()), UIMan, *this);
-	new (&m_PerspectiveControls) UIPerspectiveControls(StackText("%s.PerspectiveControls", Name()), UIMan, *this);
+	new (&m_OrthoControls) UIOrthoControls(LWUTF8I::Fmt<128>("{}.OrthoControls", Name), UIMan, *this);
+	new (&m_PerspectiveControls) UIPerspectiveControls(LWUTF8I::Fmt<128>("{}.PerspectiveControls", Name), UIMan, *this);
 
-	m_PitchTI = (LWEUITextInput *)UIMan->GetNamedUIf("%s.PitchTI", Name());
-	m_RotationTI = (LWEUITextInput *)UIMan->GetNamedUIf("%s.RotationTI", Name());
-	m_DistanceTI = (LWEUITextInput *)UIMan->GetNamedUIf("%s.DistanceTI", Name());
+	m_PitchTI = (LWEUITextInput *)UIMan->GetNamedUI(LWUTF8I::Fmt<128>("{}.PitchTI", Name));
+	m_RotationTI = (LWEUITextInput *)UIMan->GetNamedUI(LWUTF8I::Fmt<128>("{}.RotationTI", Name));
+	m_DistanceTI = (LWEUITextInput *)UIMan->GetNamedUI(LWUTF8I::Fmt<128>("{}.DistanceTI", Name));
 
 	UIMan->RegisterMethodEvent(m_PitchTI, LWEUI::Event_Changed, &UICameraControls::PitchTIChanged, this, nullptr);
 	UIMan->RegisterMethodEvent(m_DistanceTI, LWEUI::Event_Changed, &UICameraControls::DistanceTIChanged, this, nullptr);
 	UIMan->RegisterMethodEvent(m_RotationTI, LWEUI::Event_Changed, &UICameraControls::RotationTIChanged, this, nullptr);
 
 	UIToggleGroup::MakeMethod(m_TypeTglGroup, UIToggleGroup::AlwaysOneActive, &UICameraControls::TypeToggleChanged, this, nullptr);
-	m_TypeTglGroup.PushToggle(StackText("%s.PerspectiveTgl", Name()), UIMan);
-	m_TypeTglGroup.PushToggle(StackText("%s.OrthoTgl", Name()), UIMan);
+	m_TypeTglGroup.PushToggle(LWUTF8I::Fmt<128>("{}.PerspectiveTgl", Name), UIMan);
+	m_TypeTglGroup.PushToggle(LWUTF8I::Fmt<128>("{}.OrthoTgl", Name), UIMan);
 
 	UIToggleGroup::MakeMethod(m_OutputTglGroup, UIToggleGroup::AlwaysOneActive, &UICameraControls::OutputToggleChanged, this, nullptr);
-	m_OutputTglGroup.PushToggle(StackText("%s.DefaultTgl", Name()), UIMan);
-	m_OutputTglGroup.PushToggle(StackText("%s.EmissionTgl", Name()), UIMan);
-	m_OutputTglGroup.PushToggle(StackText("%s.NormalTgl", Name()), UIMan);
-	m_OutputTglGroup.PushToggle(StackText("%s.AlbedoTgl", Name()), UIMan);
-	m_OutputTglGroup.PushToggle(StackText("%s.MetallicTgl", Name()), UIMan);
+	m_OutputTglGroup.PushToggle(LWUTF8I::Fmt<128>("{}.DefaultTgl", Name), UIMan);
+	m_OutputTglGroup.PushToggle(LWUTF8I::Fmt<128>("{}.EmissionTgl", Name), UIMan);
+	m_OutputTglGroup.PushToggle(LWUTF8I::Fmt<128>("{}.NormalTgl", Name), UIMan);
+	m_OutputTglGroup.PushToggle(LWUTF8I::Fmt<128>("{}.AlbedoTgl", Name), UIMan);
+	m_OutputTglGroup.PushToggle(LWUTF8I::Fmt<128>("{}.MetallicTgl", Name), UIMan);
 }

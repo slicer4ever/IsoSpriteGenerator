@@ -6,7 +6,6 @@
 #include <LWETypes.h>
 #include <LWEJobQueue.h>
 #include "State.h"
-#include "StackText.h"
 
 class Renderer;
 
@@ -24,9 +23,9 @@ public:
 
 	void Run(void);
 
-	void SetMessage(const StackText &Message);
+	void SetMessage(const LWUTF8Iterator &Message);
 
-	bool LoadAssets(const LWText &FilePath, const LWVideoMode &CurrMode);
+	bool LoadAssets(const LWUTF8Iterator &FilePath, const LWVideoMode &CurrMode);
 
 	template<class Type>
 	Type *GetState(uint32_t State) {

@@ -18,7 +18,7 @@ struct UIPerspectiveControls : public UIItem {
 
 	void FovTIChanged(LWEUI *UI, uint32_t EventCode, void *UserData);
 
-	UIPerspectiveControls(const StackText &Name, LWEUIManager *UIMan, UICameraControls &CamControls);
+	UIPerspectiveControls(const LWUTF8Iterator &Name, LWEUIManager *UIMan, UICameraControls &CamControls);
 
 	UIPerspectiveControls() = default;
 
@@ -39,7 +39,7 @@ struct UIOrthoControls : public UIItem {
 
 	void HeightTIChanged(LWEUI *UI, uint32_t EventCode, void *UserData);
 
-	UIOrthoControls(const StackText &Name, LWEUIManager *UIMan, UICameraControls &CamControls);
+	UIOrthoControls(const LWUTF8Iterator &Name, LWEUIManager *UIMan, UICameraControls &CamControls);
 
 	UIOrthoControls() = default;
 
@@ -68,7 +68,7 @@ struct UICameraControls : public UIItem {
 
 	void DistanceTIChanged(LWEUI *UI, uint32_t EventCode, void *UserData);
 
-	UICameraControls(const StackText &Name, LWEUIManager *UIMan);
+	UICameraControls(const LWUTF8Iterator &Name, LWEUIManager *UIMan);
 
 	UICameraControls() = default;
 

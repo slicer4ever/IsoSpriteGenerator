@@ -95,10 +95,10 @@
       <AdditionalIncludeDirectories>../../../../Lightwave/Framework/Includes/C++11/;../../../../Lightwave/Engine/Includes/C++11/;../../../Includes/C++11/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>../../../../Lightwave/Framework/Binarys/$(Configuration)/$(PlatformTarget)/;../../../../Lightwave/Engine/Binarys/$(Configuration)/$(PlatformTarget)/;../../../../Lightwave/Dependency/Binarys/$(Configuration)/$(PlatformTarget)/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>LWCore.lib;LWPlatform.lib;LWVideo.lib;LWAudio.lib;LWNetwork.lib;LWEngine.lib;OpenGL32.lib;D3D11.lib;D3DCompiler.lib;dxguid.lib;SHcore.lib;libGLEW.lib;libFreetype.lib;libpng.lib;libz.lib;libogg.lib;libvorbis.lib;XInput.lib;libvpx.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>LWCore.lib;LWPlatform.lib;LWVideo.lib;LWAudio.lib;LWNetwork.lib;LWEngine.lib;libfmt.lib;OpenGL32.lib;D3D11.lib;D3DCompiler.lib;dxguid.lib;SHcore.lib;libGLEW.lib;libFreetype.lib;libpng.lib;libz.lib;libogg.lib;libvorbis.lib;XInput.lib;libvpx.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -117,7 +117,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>../../../../Lightwave/Framework/Binarys/$(Configuration)/$(PlatformTarget)/;../../../../Lightwave/Engine/Binarys/$(Configuration)/$(PlatformTarget)/;../../../../Lightwave/Dependency/Binarys/$(Configuration)/$(PlatformTarget)/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>LWCore.lib;LWPlatform.lib;LWVideo.lib;LWAudio.lib;LWNetwork.lib;LWEngine.lib;OpenGL32.lib;D3D11.lib;D3DCompiler.lib;dxguid.lib;SHcore.lib;libGLEW.lib;libFreetype.lib;libpng.lib;libz.lib;libogg.lib;libvorbis.lib;XInput.lib;libvpx.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>LWCore.lib;LWPlatform.lib;LWVideo.lib;LWAudio.lib;LWNetwork.lib;LWEngine.lib;libfmt.lib;OpenGL32.lib;D3D11.lib;D3DCompiler.lib;dxguid.lib;SHcore.lib;libGLEW.lib;libFreetype.lib;libpng.lib;libz.lib;libogg.lib;libvorbis.lib;XInput.lib;libvpx.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -129,10 +129,10 @@
       <AdditionalIncludeDirectories>../../../../Lightwave/Framework/Includes/C++11/;../../../../Lightwave/Engine/Includes/C++11/;../../../Includes/C++11/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>../../../../Lightwave/Framework/Binarys/$(Configuration)/$(PlatformTarget)/;../../../../Lightwave/Engine/Binarys/$(Configuration)/$(PlatformTarget)/;../../../../Lightwave/Dependency/Binarys/$(Configuration)/$(PlatformTarget)/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>LWCore.lib;LWPlatform.lib;LWVideo.lib;LWAudio.lib;LWNetwork.lib;LWEngine.lib;OpenGL32.lib;D3D11.lib;D3DCompiler.lib;dxguid.lib;SHcore.lib;libGLEW.lib;libFreetype.lib;libpng.lib;libz.lib;libogg.lib;libvorbis.lib;XInput.lib;libvpx.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>LWCore.lib;LWPlatform.lib;LWVideo.lib;LWAudio.lib;LWNetwork.lib;LWEngine.lib;libfmt.lib;OpenGL32.lib;D3D11.lib;D3DCompiler.lib;dxguid.lib;SHcore.lib;libGLEW.lib;libFreetype.lib;libpng.lib;libz.lib;libogg.lib;libvorbis.lib;XInput.lib;libvpx.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -141,7 +141,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NDEBUG;_CONSOLE;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>../../../../Lightwave/Framework/Includes/C++11/;../../../../Lightwave/Engine/Includes/C++11/;../../../Includes/C++11/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
@@ -151,7 +151,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>../../../../Lightwave/Framework/Binarys/$(Configuration)/$(PlatformTarget)/;../../../../Lightwave/Engine/Binarys/$(Configuration)/$(PlatformTarget)/;../../../../Lightwave/Dependency/Binarys/$(Configuration)/$(PlatformTarget)/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>LWCore.lib;LWPlatform.lib;LWVideo.lib;LWAudio.lib;LWNetwork.lib;LWEngine.lib;OpenGL32.lib;D3D11.lib;D3DCompiler.lib;dxguid.lib;SHcore.lib;libGLEW.lib;libFreetype.lib;libpng.lib;libz.lib;libogg.lib;libvorbis.lib;XInput.lib;libvpx.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>LWCore.lib;LWPlatform.lib;LWVideo.lib;LWAudio.lib;LWNetwork.lib;LWEngine.lib;libfmt.lib;OpenGL32.lib;D3D11.lib;D3DCompiler.lib;dxguid.lib;SHcore.lib;libGLEW.lib;libFreetype.lib;libpng.lib;libz.lib;libogg.lib;libvorbis.lib;XInput.lib;libvpx.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -180,11 +180,11 @@
     <ClInclude Include="..\..\..\Includes\C++11\Camera.h" />
     <ClInclude Include="..\..\..\Includes\C++11\Config.h" />
     <ClInclude Include="..\..\..\Includes\C++11\Light.h" />
+    <ClInclude Include="..\..\..\Includes\C++11\Logger.h" />
     <ClInclude Include="..\..\..\Includes\C++11\Material.h" />
     <ClInclude Include="..\..\..\Includes\C++11\Mesh.h" />
     <ClInclude Include="..\..\..\Includes\C++11\Renderer.h" />
     <ClInclude Include="..\..\..\Includes\C++11\Scene.h" />
-    <ClInclude Include="..\..\..\Includes\C++11\StackText.h" />
     <ClInclude Include="..\..\..\Includes\C++11\State.h" />
     <ClInclude Include="..\..\..\Includes\C++11\State_Viewer.h" />
     <ClInclude Include="..\..\..\Includes\C++11\UICameraControls.h" />
