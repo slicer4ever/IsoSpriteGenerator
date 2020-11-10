@@ -398,8 +398,8 @@ GFrame::GFrame(LWVideoDriver *Driver, LWAllocator &Allocator) : m_Driver(Driver)
 	m_PassDataBuffer = m_Driver->AllocatePaddedArray<GPassData>(MaxRawPasses, Allocator);
 	m_ModelDataBuffer = m_Driver->AllocatePaddedArray<GModelData>(MaxModels, Allocator);
 	m_AnimDataBuffer = m_Driver->AllocatePaddedArray<GAnimData>(MaxAnimations, Allocator);
-	m_ParticleVertices = Allocator.AllocateA<ParticleVert>(MaxParticleVertices);
-	m_LightsBuffer = Allocator.AllocateA<GLight>(MaxLights);
+	m_ParticleVertices = Allocator.Allocate<ParticleVert>(MaxParticleVertices);
+	m_LightsBuffer = Allocator.Allocate<GLight>(MaxLights);
 }
 
 GFrame::~GFrame() {
@@ -477,7 +477,7 @@ Renderer &Renderer::SizeUpdated(LWWindow *Window) {
 
 
 	uint32_t KernelSize = m_Driver->GetUniformPaddedLength<GGaussianKernel>(GaussianKernelCount);
-	char *GKernel = m_Allocator.AllocateA<char>(KernelSize);
+	char *GKernel = m_Allocator.Allocate<char>(KernelSize);
 	GGaussianKernel::MakeKernel(m_Driver, ScreenGaussianKernel, 10.0f, m_ScreenFB->GetSize(), GKernel);
 	if (m_GaussianKernel) m_Driver->DestroyVideoBuffer(m_GaussianKernel);
 	m_GaussianKernel = m_Driver->CreatePaddedVideoBuffer<GGaussianKernel>(LWVideoBuffer::Uniform, LWVideoBuffer::Static, GaussianKernelCount, m_Allocator, GKernel);
@@ -1118,7 +1118,7 @@ uint32_t Renderer::PushPendingGeometry(uint32_t ID, uint32_t DataType, char *Dat
 	char *D = Data;
 	if (Copy) {
 		uint32_t Len = DataCnt * DataSize;
-		D = Allocator.AllocateA<char>(Len);
+		D = Allocator.Allocate<char>(Len);
 		std::copy(Data, Data + Len, D);
 	}
 	PendingGeometry &P = m_PendingGeometry[m_PendingGeomWriteFrame % MaxPendingGeometry];
@@ -1581,7 +1581,7 @@ Renderer::Renderer(LWVideoDriver *Driver, LWAllocator &Allocator) : m_Allocator(
 	m_ParticleIdxID = NextGeometryID();
 
 	uint32_t ParticleIdxCount = GFrame::MaxParticleVertices / 4 * 6;
-	uint32_t *ParticleIdxBuffer = Allocator.AllocateA<uint32_t>(ParticleIdxCount);
+	uint32_t *ParticleIdxBuffer = Allocator.Allocate<uint32_t>(ParticleIdxCount);
 	for (uint32_t i = 0, n = 0; i < ParticleIdxCount; i += 6, n += 4) {
 		ParticleIdxBuffer[i + 0] = n; ParticleIdxBuffer[i + 1] = n + 1; ParticleIdxBuffer[i + 2] = n + 2;
 		ParticleIdxBuffer[i + 3] = n + 2; ParticleIdxBuffer[i + 4] = n + 3; ParticleIdxBuffer[i + 5] = n;

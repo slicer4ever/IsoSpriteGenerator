@@ -58,10 +58,10 @@ Mesh &Mesh::MakeGLTFMesh(LWEGLTFParser &P, LWEGLTFNode *Source, LWEGLTFMesh *Mes
 	char *Verts = nullptr;
 	char *Idxs = nullptr;
 	if (TotalVertices) {
-		if (VerticeSize == sizeof(GStaticVertice)) Verts = (char*)Allocator.AllocateA<GStaticVertice>(TotalVertices);
-		else Verts = (char*)Allocator.AllocateA<GSkeletonVertice>(TotalVertices);
+		if (VerticeSize == sizeof(GStaticVertice)) Verts = (char*)Allocator.Allocate<GStaticVertice>(TotalVertices);
+		else Verts = (char*)Allocator.Allocate<GSkeletonVertice>(TotalVertices);
 	}
-	if (TotalIndices) Idxs = Allocator.AllocateA<char>(IndiceSize*TotalIndices);
+	if (TotalIndices) Idxs = Allocator.Allocate<char>(IndiceSize*TotalIndices);
 	uint32_t v = 0;
 	uint32_t o = 0;
 	for (auto &&Prim : Mesh->m_Primitives) {
