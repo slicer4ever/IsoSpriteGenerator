@@ -267,8 +267,8 @@ GFrame &GFrame::InitializeRTPasses(const LWSVector4f &SceneAABBMin, const LWSVec
 	auto MakeSpotLightPass = [this](GLight &GL, uint32_t LightIndex, uint32_t &POffset, uint32_t &ArrayCount, uint32_t MaxArrayElements, bool isShadowCaster, bool isReflector) -> uint32_t {
 		if (ArrayCount >= MaxShadowRTs) return 0;
 		if (POffset >= MaxPasses) return 0;
-		float Theta = GL.m_Position.w() - 1.0f;
-		float Length = GL.m_Direction.w();
+		float Theta = GL.m_Position.w - 1.0f;
+		float Length = GL.m_Direction.w;
 		Camera DirCamera = Camera(GL.m_Position.AAAB(LWSVector4f(1.0f)), GL.m_Direction.AAAB(LWSVector4f(0.0f)), LWSVector4f(0.0f, 1.0f, 0.0f, 0.0f), 1.0f, Theta * 2.0f, 0.1f, Length, (isShadowCaster ? Camera::ShadowCaster : 0) | (isReflector ? Camera::Reflection : 0));
 		uint32_t Bits = InitializePass(POffset, ArrayCount++, 0, LightIndex, DirCamera);
 		GL.m_ShadowIdxs.x = POffset++;
@@ -279,7 +279,7 @@ GFrame &GFrame::InitializeRTPasses(const LWSVector4f &SceneAABBMin, const LWSVec
 		if (ArrayCount >= MaxShadowRTs) return 0;
 		if (POffset >= MaxPasses) return 0;
 		if (MaxPasses + m_RawPassCount + 5 > MaxRawPasses) return 0;
-		Camera PntCamera = Camera(GL.m_Position, GL.m_Direction.x() + GL.m_Direction.y(), (isShadowCaster ? Camera::ShadowCaster : 0) | (isReflector ? Camera::Reflection : 0));
+		Camera PntCamera = Camera(GL.m_Position, GL.m_Direction.x + GL.m_Direction.y, (isShadowCaster ? Camera::ShadowCaster : 0) | (isReflector ? Camera::Reflection : 0));
 		uint32_t Bits = 0;
 		Bits |= InitializePass(POffset, ArrayCount, 0, LightIndex, PntCamera);
 		for (uint32_t i = 1; i < 6; i++) Bits |= InitializePass(MaxPasses + m_RawPassCount + i, ArrayCount, i, LightIndex, PntCamera);
@@ -293,7 +293,7 @@ GFrame &GFrame::InitializeRTPasses(const LWSVector4f &SceneAABBMin, const LWSVec
 	for (uint32_t i = 0; i < m_ShadowCount && o<RTFirstPass+MaxPasses; i++) {
 		GElement &Caster = m_ShadowLightList[i];
 		GLight &GL = m_LightsBuffer[Caster.m_Index];
-		uint32_t lType = Light::LightType(GL.m_Position.w());
+		uint32_t lType = Light::LightType(GL.m_Position.w);
 		if (lType == Light::DirectionalLight) MakeDirectionLightPass(GL, Caster.m_Index, MV, MVP, o, m_ShadowArrayCount, MaxShadowRTs);
 		else if (lType == Light::SpotLight) MakeSpotLightPass(GL, Caster.m_Index, o, m_ShadowArrayCount, MaxShadowRTs, true, false);
 		else if (lType == Light::PointLight) MakePointLightPass(GL, Caster.m_Index, o, m_ShadowCubeCount, MaxShadowRTs, true, false);
@@ -349,7 +349,7 @@ uint32_t GFrame::PushModel(GFrameModel &Mdl, uint32_t PassBits, uint32_t AnimID,
 	M->Material = Material;
 	m_ModelList[m_ModelCount] = Mdl;
 	m_ModelList[m_ModelCount].SetBufferIDs(m_ModelCount, AnimID);
-	LWSVector4f Pos = Transform.Row(3);
+	LWSVector4f Pos = Transform[3];
 	for(uint32_t i=0;i<MaxRawPasses;i++){
 		if (((1<<i)&PassBits)==0) continue;
 		if(!m_PassList[i].isInitialized(m_FrameID)) continue;
@@ -395,9 +395,9 @@ uint32_t GFrame::WriteParticles(uint32_t Count) {
 GFrame::GFrame(LWVideoDriver *Driver, LWAllocator &Allocator) : m_Driver(Driver) {
 	LWVideoBuffer *UIVerts = m_Driver->CreateVideoBuffer<LWVertexUI>(LWVideoBuffer::Vertex, LWVideoBuffer::WriteDiscardable | LWVideoBuffer::LocalCopy, MaxUIElements * 6, Allocator, nullptr);
 	m_UIFrame.m_Mesh = LWVertexUI::MakeMesh(Allocator, UIVerts, 0);
-	m_PassDataBuffer = m_Driver->AllocatePaddedArray<GPassData>(MaxRawPasses, Allocator);
-	m_ModelDataBuffer = m_Driver->AllocatePaddedArray<GModelData>(MaxModels, Allocator);
-	m_AnimDataBuffer = m_Driver->AllocatePaddedArray<GAnimData>(MaxAnimations, Allocator);
+	m_PassDataBuffer = m_Driver->AllocatePadded<GPassData>(MaxRawPasses, Allocator);
+	m_ModelDataBuffer = m_Driver->AllocatePadded<GModelData>(MaxModels, Allocator);
+	m_AnimDataBuffer = m_Driver->AllocatePadded<GAnimData>(MaxAnimations, Allocator);
 	m_ParticleVertices = Allocator.Allocate<ParticleVert>(MaxParticleVertices);
 	m_LightsBuffer = Allocator.Allocate<GLight>(MaxLights);
 }
@@ -1004,14 +1004,14 @@ Renderer &Renderer::WriteCone(GFrame &F, uint32_t PassBits, const LWSVector4f &P
 
 Renderer &Renderer::WriteDebugCube(GFrame &F, uint32_t PassBits, const LWSVector4f &Pos, const LWSVector4f &Size, const LWVector4f &Color, uint32_t Flags) {
 	LWSVector4f hSize = (Size * 0.5f).AAAB(LWSVector4f());
-	LWSMatrix4f Transform = LWSMatrix4f(hSize.x(), hSize.y(), hSize.z(), 1.0f) * LWSMatrix4f::Translation(Pos);
+	LWSMatrix4f Transform = LWSMatrix4f(hSize.x, hSize.y, hSize.z, 1.0f) * LWSMatrix4f::Translation(Pos);
 	WriteDebugGeometry(F, m_CubeVertID, m_CubeIdxID, F.PassBitsInAABB(Pos - hSize, Pos + hSize, PassBits), Transform, Color, Flags);
 	return *this;
 }
 
 Renderer &Renderer::WriteCube(GFrame &F, uint32_t PassBits, const LWSVector4f &Pos, const LWSVector4f &Size, Material &Mat, uint32_t Flags) {
 	LWSVector4f hSize = (Size * 0.5f).AAAB(LWSVector4f());
-	LWSMatrix4f Transform = LWSMatrix4f(hSize.x(), hSize.y(), hSize.z(), 1.0f) * LWSMatrix4f::Translation(Pos);
+	LWSMatrix4f Transform = LWSMatrix4f(hSize.x, hSize.y, hSize.z, 1.0f) * LWSMatrix4f::Translation(Pos);
 	WriteGeometry(F, m_CubeVertID, m_CubeIdxID, 0, F.PassBitsInAABB(Pos - hSize, Pos + hSize, PassBits), Transform, Mat, Flags);
 	return *this;
 }
@@ -1029,7 +1029,7 @@ Renderer &Renderer::WriteDebugAxis(GFrame &F, uint32_t PassBits, const LWSMatrix
 	xAxis *= LineLen;
 	yAxis *= LineLen;
 	zAxis *= LineLen;
-	LWSVector4f Pos = Transform.Row(3);
+	LWSVector4f Pos = Transform[3];
 	WriteDebugLine(F, PassBits, Pos, Pos + xAxis, LineThickness, LWVector4f(1.0f, 0.0f, 0.0f, 1.0f), Flags);
 	WriteDebugLine(F, PassBits, Pos, Pos - xAxis, LineThickness, LWVector4f(0.5f, 0.0f, 0.0f, 0.5f), Flags);
 	WriteDebugLine(F, PassBits, Pos, Pos + yAxis, LineThickness, LWVector4f(0.0f, 1.0f, 0.0f, 1.0f), Flags);

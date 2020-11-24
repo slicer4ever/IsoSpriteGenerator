@@ -147,19 +147,25 @@ Mesh &Mesh::MakeGLTFSkin(LWEGLTFParser &P, LWEGLTFNode *Source, LWEGLTFSkin *Ski
 
 	std::function<void(LWEGLTFNode *, LWEGLTFSkin*)> ParseJointNode = [this, &P, &InvBindMatrixs, &ParseJointNode, &MapIDToList](LWEGLTFNode *N, LWEGLTFSkin *Skin) {
 		uint32_t ID = MapIDToList(Skin->m_JointList, N->m_NodeID);
-		m_BoneList[ID] = Bone(N->GetName(), InvBindMatrixs[ID], N->m_TransformMatrix);
-		uint32_t pID = -1;
-		for (auto &&Iter : N->m_Children) {
-			uint32_t cID = MapIDToList(Skin->m_JointList, Iter);
-			if (pID != -1) {
-				m_BoneList[pID].m_NextBoneID = cID;
-			} else m_BoneList[ID].m_ChildBoneID = cID;
-			pID = cID;				
-		}
+		if (!*N->m_Name) N->SetName(LWUTF8I::Fmt<64>("Bone_{}", ID));
+		m_BoneList[ID] = Bone(N->GetName(), LWSMatrix4f(InvBindMatrixs[ID]), LWSMatrix4f(N->m_TransformMatrix));
 		return;
 	};
 
+	std::function<void(LWEGLTFNode*, LWEGLTFSkin*)> ParseJointChildren = [this, &P, &ParseJointChildren, &MapIDToList](LWEGLTFNode *N, LWEGLTFSkin *Skin) {
+		uint32_t ID = MapIDToList(Skin->m_JointList, N->m_NodeID);
+		uint32_t pID = -1;
+		for (auto &&Iter : N->m_Children) {
+			uint32_t cID = MapIDToList(Skin->m_JointList, Iter);
+
+			if (pID != -1) {
+				m_BoneList[pID].m_NextBoneID = cID;
+			} else m_BoneList[ID].m_ChildBoneID = cID;
+			pID = cID;
+		}
+	};
 	for (auto &&Iter : Skin->m_JointList) ParseJointNode(P.GetNode(Iter), Skin);
+	for (auto &&Iter : Skin->m_JointList) ParseJointChildren(P.GetNode(Iter), Skin);
 
 	return *this;
 }
@@ -210,7 +216,7 @@ LWVector4i Mesh::BuildBounds(const LWSMatrix4f &Transform, const LWSMatrix4f *Bo
 	};
 	auto Project = [this](const LWSVector4f &Pnt, const LWSMatrix4f &ViewProjMatrix, const LWVector2f &WndSize, LWSVector4f &Res)->bool {
 		LWSVector4f P = Pnt * ViewProjMatrix;
-		float w = P.w();
+		float w = P.w;
 		if (fabs(w) <= std::numeric_limits<float>::epsilon()) return false;
 		w = 1.0f / w;
 		P *= w;
@@ -273,12 +279,12 @@ Mesh &Mesh::ApplyTransformToBone(uint32_t BoneID, const LWSMatrix4f &Transform, 
 }
 
 Mesh &Mesh::ApplyRotationTransformToBone(uint32_t BoneID, const LWSMatrix4f &Transform, LWSMatrix4f *TransformMatrixs) {
-	LWSVector4f Pos = TransformMatrixs[BoneID].Row(3);
+	LWSVector4f Pos = TransformMatrixs[BoneID][3];
 	LWSMatrix4f Matrix = LWSMatrix4f::Translation(-Pos) * Transform;
-	LWSVector4f R0 = Matrix.Row(0);
-	LWSVector4f R1 = Matrix.Row(1);
-	LWSVector4f R2 = Matrix.Row(2);
-	LWSVector4f R3 = Matrix.Row(3);
+	LWSVector4f R0 = Matrix[0];
+	LWSVector4f R1 = Matrix[1];
+	LWSVector4f R2 = Matrix[2];
+	LWSVector4f R3 = Matrix[3];
 	R3 += Pos.AAAB(LWSVector4f());
 	return ApplyTransformToBone(BoneID, LWSMatrix4f(R0, R1, R2, R3), TransformMatrixs);
 }

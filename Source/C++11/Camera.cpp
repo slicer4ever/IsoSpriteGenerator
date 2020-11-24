@@ -205,7 +205,7 @@ uint32_t Camera::MakeCascadeCameraViews(const LWSVector4f &LightDir, const LWSVe
 
 	//Max of 4 cascades.
 	CascadeCnt = std::min<uint32_t>(CascadeCnt, 4);
-	float Far = ViewFrustumPoints[1].w();
+	float Far = ViewFrustumPoints[1].w;
 	float MinDistance = std::min<float>(200.0f * 3.0f, Far * 0.6f);
 	//Manually adjusted cascaded distances, depending on CasecadeCnt, and minimum distance
 	float SDistances[5] = { 0.0f, (MinDistance * 0.33f) / Far, MinDistance / Far, 0.6f, 1.0f };
@@ -346,7 +346,7 @@ Camera &Camera::ToggleCameraControl(void) {
 LWSVector4f Camera::UnProject(const LWVector2f &ScreenPnt, float Depth, const LWVector2f &WndSize) const {
 	LWSVector4f Pnt = LWSVector4f(ScreenPnt / WndSize * 2.0f - 1.0f, Depth*2.0f - 1.0f, 1.0f);
 	Pnt = Pnt * (GetViewMatrix() * GetProjMatrix()).Inverse();
-	float w = Pnt.w();
+	float w = Pnt.w;
 	if (fabs(w) <= std::numeric_limits<float>::epsilon()) return m_Position;
 	w = 1.0f / w;
 	return LWSVector4f(Pnt * w);
@@ -354,7 +354,7 @@ LWSVector4f Camera::UnProject(const LWVector2f &ScreenPnt, float Depth, const LW
 
 LWSVector4f Camera::Project(const LWSVector4f &Pnt, const LWVector2f &WndSize) const {
 	LWSVector4f P = Pnt * GetViewMatrix()*GetProjMatrix();
-	float w = P.w();
+	float w = P.w;
 	if (fabs(w) <= std::numeric_limits<float>::epsilon()) return LWSVector4f(-1.0f);
 	w = 1.0f / w;
 	P *= w;
@@ -369,8 +369,8 @@ bool Camera::UnProjectAgainstPlane(const LWVector2f &ScreenPnt, const LWVector2f
 
 	LWSVector4f Near = NearPnt * Matrix;
 	LWSVector4f Far = FarPnt * Matrix;
-	float nw = Near.w();
-	float fw = Far.w();
+	float nw = Near.w;
+	float fw = Far.w;
 	if (fabs(nw) < std::numeric_limits<float>::epsilon()) Near = m_Position;// LWVector4f(m_Position, 1.0f);
 	else Near = Near * (1.0f / nw);
 	if (fabs(fw) < std::numeric_limits<float>::epsilon()) Far = m_Position;

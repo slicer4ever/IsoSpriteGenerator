@@ -118,8 +118,8 @@ void UICameraControls::Update(float dTime, LWEUIManager *UIMan, App *A) {
 	if (!isVisible()) return;
 	LWEUI *Focused = UIMan->GetFocusedUI();
 	LWSVector4f Dir = m_Camera.GetDirection();
-	float Pitch = asinf(-Dir.y());
-	float Theta = atan2f(Dir.z(), Dir.x());
+	float Pitch = asinf(-Dir.y);
+	float Theta = atan2f(Dir.z, Dir.x);
 	float Len = m_Camera.GetPosition().Length3();
 	if (Focused != m_PitchTI) m_PitchTI->Clear().InsertText(LWUTF8I::Fmt<32>("{:.2}", Pitch * LW_RADTODEG));
 	if (Focused != m_RotationTI) m_RotationTI->Clear().InsertText(LWUTF8I::Fmt<32>("{:.2}", Theta * LW_RADTODEG));
@@ -170,8 +170,8 @@ void UICameraControls::SerializeSettings(LWEJson &JSon, LWEJObject *Parent, App 
 	const uint32_t OrthoToggle = 1;
 
 	LWSVector4f Dir = m_Camera.GetDirection();
-	float Pitch = asinf(-Dir.y())*LW_RADTODEG;
-	float Theta = atan2f(Dir.z(), Dir.x())*LW_RADTODEG;
+	float Pitch = asinf(-Dir.y)*LW_RADTODEG;
+	float Theta = atan2f(Dir.z, Dir.x)*LW_RADTODEG;
 	float Len = m_Camera.GetPosition().Length3();
 	uint32_t CType = m_TypeTglGroup.NextToggled();
 	JSon.MakeValueElement("CPitch", Pitch, Parent);
@@ -198,8 +198,8 @@ void UICameraControls::DeserializeSettings(LWEJson &JSon, LWEJObject *Parent, Ap
 	LWEJObject *JCType = Parent->FindChild("CType", JSon);
 
 	LWSVector4f Dir = m_Camera.GetDirection();
-	float Pitch = asinf(-Dir.y());
-	float Theta = atan2f(Dir.z(), Dir.x());
+	float Pitch = asinf(-Dir.y);
+	float Theta = atan2f(Dir.z, Dir.x);
 	float Len = m_Camera.GetPosition().Length3();
 
 	if (JCPitch) Pitch = JCPitch->AsFloat() * LW_DEGTORAD;

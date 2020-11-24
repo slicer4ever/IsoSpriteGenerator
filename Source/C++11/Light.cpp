@@ -14,7 +14,7 @@ Light &Light::SetShadowCaster(bool iShadowCaster) {
 }
 
 uint32_t Light::GetLightType(void) const {
-	return LightType(m_Position.w());
+	return LightType(m_Position.w);
 }
 
 bool Light::isShadowCaster(void) const {
@@ -22,22 +22,22 @@ bool Light::isShadowCaster(void) const {
 }
 
 Light &Light::SetPointInnerRadius(float Radius) {
-	m_Direction.sX(Radius);
+	m_Direction.x = Radius;
 	return *this;
 }
 
 Light &Light::SetPointFalloffRadius(float Radius) {
-	m_Direction.sY(Radius);
+	m_Direction.y = Radius;
 	return *this;
 }
 
 Light &Light::SetSpotTheta(float Theta) {
-	m_Position.sW(1.0f + Theta);
+	m_Position.w = 1.0f + Theta;
 	return *this;
 }
 
 Light &Light::SetSpotLength(float Length) {
-	m_Direction.sW(Length);
+	m_Direction.w = Length;
 	return *this;
 }
 
@@ -52,13 +52,13 @@ void Light::GetAABounds(LWSVector4f &Min, LWSVector4f &Max) const {
 		Min = Max = m_Position;
 		return;
 	} else if (lType == PointLight) {
-		float InnerRadius = m_Direction.x();
-		float OuterRadius = m_Direction.y();
+		float InnerRadius = m_Direction.x;
+		float OuterRadius = m_Direction.y;
 		float Radi = InnerRadius + OuterRadius;
 		Min = m_Position - LWSVector4f(Radi, Radi, Radi, 0.0f);
 		Max = m_Position + LWSVector4f(Radi, Radi, Radi, 0.0f);
 	} else if (lType == DirectionalLight) {
-		float Radi = m_Direction.w();
+		float Radi = m_Direction.w;
 		Min = m_Position - LWSVector4f(Radi, Radi, Radi, 0.0f);
 		Max = m_Position + LWSVector4f(Radi, Radi, Radi, 0.0f);
 	}
@@ -66,23 +66,23 @@ void Light::GetAABounds(LWSVector4f &Min, LWSVector4f &Max) const {
 }
 
 float Light::GetPointRadius(void) const {
-	return m_Direction.x() + m_Direction.y();
+	return m_Direction.x + m_Direction.y;
 }
 
 float Light::GetPointInnerRadius(void) const {
-	return m_Direction.x();
+	return m_Direction.x;
 }
 
 float Light::GetPointFalloffRadius(void) const {
-	return m_Direction.y();
+	return m_Direction.y;
 }
 
 float Light::GetSpotTheta(void) const {
-	return m_Position.w() - 1.0f;
+	return m_Position.w - 1.0f;
 }
 
 float Light::GetSpotLength(void) const {
-	return m_Direction.w();
+	return m_Direction.w;
 }
 
 float Light::GetIntensity(void) const {
